@@ -41,7 +41,8 @@ Preprocess and Augmentation
 
 Models
 -----------------------------------
-
+1. UNETR
+![unetr](images/unetr.png)
 
 
 Metrics
@@ -50,16 +51,12 @@ Metrics
 
 Requirements
 -----------------------------------
-- tensorflow
-- tensorflow-addons
-- tensorflow-cpu
-- numpy
-- matplotlib
-- elasticdeform
-- scikit-learn
-- scipy
-- nibabel
-- SimpleITK
+- torch==1.9.1
+- monai==0.7.0
+- nibabel==3.1.1
+- tqdm==4.59.0
+- einops==0.3.0
+- tensorboardX==2.1
 
 Install the requirements using command below:
 ```bash
@@ -68,14 +65,44 @@ pip install -r requirements.txt
 Run
 --------------------------------------
 
-Use the following command to see the arguments needed for running:
+For training **UNETR** model from scratch use this:
 ```bash
-python -m scripts.main -h
+python scripts/main.py
+--feature_size=32
+--batch_size=1
+--logdir=unetr_test
+--fold=0
+--optim_lr=1e-4
+--lrschedule=warmup_cosine
+--infer_overlap=0.5
+--save_checkpoint
+--data_dir=../Dataset_BRATS_2020/Training/
 ```
 
-For running **UNet3D** model use this:
+For fine-tunning **UNETR** model use this:
 ```bash
-python -m scripts.main -bs 4 -ps 128 -a 5 -ne 1 -ef 0.25 -lr 1e-3 -b1 0.9 -ds 100 -np 2 -aug 1 -m unet
+python scripts/main.py
+--batch_size=1
+--logdir=unetr_pretrained
+--fold=0
+--optim_lr=1e-4
+--lrschedule=warmup_cosine
+--infer_overlap=0.5
+--save_checkpoint
+--data_dir=../Dataset_BRATS_2020/Training/
+--pretrained_dir='../pretrained_models/'
+--noamp
+--pretrained_model_name='UNETR_model_best_acc.pt'
+--resume_jit
+```
+
+For testing **UNETR** model use this:
+```bash
+python test.py
+--infer_overlap=0.5
+--data_dir=../Dataset_BRATS_2020/Training/
+--pretrained_dir='../pretrained_models/'
+--saved_checkpoint=torchscript
 ```
 
 References
