@@ -78,17 +78,17 @@ train_transform = Compose(
         LoadImaged(keys=["image", "label"]),
         AsChannelFirstd(keys="image"),
         ConvertToMultiChannelBasedOnBratsClassesd(keys="label"),
-        Spacingd(
-            keys=["image", "label"],
-            pixdim=pixdim,
-            mode=("bilinear", "nearest"),
-        ),
-        Orientationd(keys=["image", "label"], axcodes="RAS"),
-        RandSpatialCropd(keys=["image", "label"], roi_size=roi_size, random_size=False),
-        RandFlipd(keys=["image", "label"], prob=0.5, spatial_axis=0),
-        NormalizeIntensityd(keys="image", nonzero=True, channel_wise=True),
-        RandScaleIntensityd(keys="image", factors=0.1, prob=0.5),
-        RandShiftIntensityd(keys="image", offsets=0.1, prob=0.5),
+        # Spacingd(
+        #     keys=["image", "label"],
+        #     pixdim=pixdim,
+        #     mode=("bilinear", "nearest"),
+        # ),
+        # Orientationd(keys=["image", "label"], axcodes="RAS"),
+        # RandSpatialCropd(keys=["image", "label"], roi_size=roi_size, random_size=False),
+        # RandFlipd(keys=["image", "label"], prob=0.5, spatial_axis=0),
+        # NormalizeIntensityd(keys="image", nonzero=True, channel_wise=True),
+        # RandScaleIntensityd(keys="image", factors=0.1, prob=0.5),
+        # RandShiftIntensityd(keys="image", offsets=0.1, prob=0.5),
         ToTensord(keys=["image", "label"]),
     ]
 )
@@ -97,14 +97,14 @@ val_transform = Compose(
         LoadImaged(keys=["image", "label"]),
         AsChannelFirstd(keys="image"),
         ConvertToMultiChannelBasedOnBratsClassesd(keys="label"),
-        Spacingd(
-            keys=["image", "label"],
-            pixdim=pixdim,
-            mode=("bilinear", "nearest"),
-        ),
-        Orientationd(keys=["image", "label"], axcodes="RAS"),
-        CenterSpatialCropd(keys=["image", "label"], roi_size=roi_size),
-        NormalizeIntensityd(keys="image", nonzero=True, channel_wise=True),
+        # Spacingd(
+        #     keys=["image", "label"],
+        #     pixdim=pixdim,
+        #     mode=("bilinear", "nearest"),
+        # ),
+        # Orientationd(keys=["image", "label"], axcodes="RAS"),
+        # CenterSpatialCropd(keys=["image", "label"], roi_size=roi_size),
+        # NormalizeIntensityd(keys="image", nonzero=True, channel_wise=True),
         ToTensord(keys=["image", "label"]),
     ]
 )
