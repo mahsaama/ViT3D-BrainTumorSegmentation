@@ -68,9 +68,13 @@ data_dicts = [
     )
 ]
 
-for p in data_dicts[0]:
+for p in data_dicts[0]["image"]:
     x = nib.load(p).get_fdata(dtype="float32", caching="unchanged")
     print(x.shape)
+
+x = nib.load(data_dicts[0]["label"]).get_fdata(dtype="float32", caching="unchanged")
+print(x.shape) 
+
 
 train_files, val_files = (
     data_dicts[: int(n_data * frac)],
