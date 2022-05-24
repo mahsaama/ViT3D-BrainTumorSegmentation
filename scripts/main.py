@@ -28,7 +28,7 @@ import glob
 
 root_dir = "./"
 set_determinism(seed=0)
-roi_size = [128, 128, 64]
+roi_size = [128, 128, 128]
 pixdim = (1.5, 1.5, 2.0)
 cache_num = 8
 device = torch.device("cuda:0")
