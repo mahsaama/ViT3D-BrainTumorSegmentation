@@ -29,7 +29,7 @@ import glob
 
 root_dir = "./"
 set_determinism(seed=0)
-roi_size = [128, 128, 128]
+roi_size = [128, 128, 64]
 pixdim = (1.5, 1.5, 2.0)
 cache_num = 8
 device = torch.device("cuda:0")
@@ -68,8 +68,8 @@ data_dicts = [
 ]
 
 train_files, val_files = (
-    data_dicts[: int(n_data * 0.25)],
-    data_dicts[int(n_data * 0.25) :],
+    data_dicts[: int(n_data * frac)],
+    data_dicts[int(n_data * frac) :],
 )
 
 train_transform = Compose(
@@ -142,6 +142,7 @@ for epoch in range(max_epochs):
             batch_data["image"].to(device),
             batch_data["label"].to(device),
         )
+        print(inputs.size(), labels.size())
         optimizer.zero_grad()
         outputs = model(inputs)
 
