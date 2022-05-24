@@ -9,6 +9,7 @@ from monai.utils import set_determinism
 from monai.transforms import (
     Activations,
     AsChannelFirstd,
+    AsChannelLast,
     AsDiscrete,
     CenterSpatialCropd,
     Compose,
@@ -76,7 +77,7 @@ train_transform = Compose(
     [
         # load 4 Nifti images and stack them together
         LoadImaged(keys=["image", "label"]),
-        AsChannelFirstd(keys="image"),
+        AsChannelLast(keys="image"),
         ConvertToMultiChannelBasedOnBratsClassesd(keys="label"),
         Spacingd(
             keys=["image", "label"],
@@ -95,7 +96,7 @@ train_transform = Compose(
 val_transform = Compose(
     [
         LoadImaged(keys=["image", "label"]),
-        AsChannelFirstd(keys="image"),
+        AsChannelLast(keys="image"),
         ConvertToMultiChannelBasedOnBratsClassesd(keys="label"),
         Spacingd(
             keys=["image", "label"],
