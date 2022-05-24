@@ -98,7 +98,7 @@ python scripts/main.py
 
 For testing **UNETR** model use this:
 ```bash
-python test.py
+python scripts/test.py
 --infer_overlap=0.5
 --data_dir=../Dataset_BRATS_2020/Training/
 --pretrained_dir='../pretrained_models/'
