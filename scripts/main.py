@@ -101,7 +101,7 @@ train_transform = Compose(
     [
         # load 4 Nifti images and stack them together
         LoadImaged(keys=["image", "label"]),
-        AsChannelLastd(keys="image"),
+        AsChannelFirstd(keys="image"),
         ConvertToMultiChannelBasedOnBratsClassesd(keys="label"),
         Spacingd(
             keys=["image", "label"],
@@ -120,7 +120,7 @@ train_transform = Compose(
 val_transform = Compose(
     [
         LoadImaged(keys=["image", "label"]),
-        AsChannelLastd(keys="image"),
+        AsChannelFirstd(keys="image"),
         ConvertToMultiChannelBasedOnBratsClassesd(keys="label"),
         Spacingd(
             keys=["image", "label"],
