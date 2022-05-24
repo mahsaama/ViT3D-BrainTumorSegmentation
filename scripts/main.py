@@ -1,7 +1,7 @@
 import os
 import torch
 from monai.apps import DecathlonDataset
-from monai.data import DataLoader
+from monai.data import DataLoader, Dataset
 from monai.losses import DiceCELoss
 from monai.metrics import DiceMetric
 from monai.networks.nets import UNet
@@ -23,16 +23,17 @@ from monai.transforms import (
     ToTensord,
 )
 from utils.utils import ConvertToMultiChannelBasedOnBratsClassesd
+import glob
 
 
-root_dir = './' 
+root_dir = "./"
 set_determinism(seed=0)
-roi_size=[128, 128, 64]
-pixdim=(1.5, 1.5, 2.0)
+roi_size = [128, 128, 64]
+pixdim = (1.5, 1.5, 2.0)
 cache_num = 8
 device = torch.device("cuda:0")
-num_heads = 10 # 12 normally 
-embed_dim= 512
+num_heads = 10  # 12 normally
+embed_dim = 512
 max_epochs = 180
 val_interval = 5
 best_metric = -1
@@ -42,7 +43,35 @@ metric_values = []
 metric_values_tc = []
 metric_values_wt = []
 metric_values_et = []
+ds = 2020
+frac = 0.25
 
+if ds == 2020:
+    data_dir = "../Dataset_BRATS_2020/Training/"
+elif ds == 2021:
+    data_dir = "../Dataset_BRATS_2021/"
+
+data_dir = "../DATASET_BRATS_2020/Training"
+
+t1_list = sorted(glob.glob(data_dir + "*/*t1.nii.gz"))
+t2_list = sorted(glob.glob(data_dir + "*/*t2.nii.gz"))
+t1ce_list = sorted(glob.glob(data_dir + "*/*t1ce.nii.gz"))
+flair_list = sorted(glob.glob(data_dir + "*/*flair.nii.gz"))
+seg_list = sorted(glob.glob(data_dir + "*/*seg.nii.gz"))
+
+n_data = len(t1_list)
+
+data_dicts = [
+    {"image": [t1, t2, t1ce, f], "label": label_name}
+    for t1, t2, t1ce, f, label_name in zip(
+        t1_list, t2_list, t1ce_list, flair_list, seg_list
+    )
+]
+
+train_files, val_files = (
+    data_dicts[: int(n_data * 0.25)],
+    data_dicts[int(n_data * 0.25) :],
+)
 
 train_transform = Compose(
     [
@@ -56,8 +85,7 @@ train_transform = Compose(
             mode=("bilinear", "nearest"),
         ),
         Orientationd(keys=["image", "label"], axcodes="RAS"),
-        RandSpatialCropd(
-            keys=["image", "label"], roi_size=roi_size, random_size=False),
+        RandSpatialCropd(keys=["image", "label"], roi_size=roi_size, random_size=False),
         RandFlipd(keys=["image", "label"], prob=0.5, spatial_axis=0),
         NormalizeIntensityd(keys="image", nonzero=True, channel_wise=True),
         RandScaleIntensityd(keys="image", factors=0.1, prob=0.5),
@@ -82,26 +110,10 @@ val_transform = Compose(
     ]
 )
 
+train_ds = Dataset(data=train_files, transform=train_transform)
+val_ds = Dataset(data=val_files, transform=val_transform)
 
-train_ds = DecathlonDataset(
-    root_dir=root_dir,
-    task="Task01_BrainTumour",
-    transform=train_transform,
-    section="training",
-    download=True,
-    num_workers=4,
-    cache_num=cache_num, # it was 100 but we use larger volumes
-)
 train_loader = DataLoader(train_ds, batch_size=2, shuffle=True, num_workers=2)
-val_ds = DecathlonDataset(
-    root_dir=root_dir,
-    task="Task01_BrainTumour",
-    transform=val_transform,
-    section="validation",
-    download=False,
-    num_workers=4,
-    cache_num=cache_num,
-)
 val_loader = DataLoader(val_ds, batch_size=2, shuffle=False, num_workers=2)
 
 model = UNet(
@@ -113,9 +125,6 @@ model = UNet(
     num_res_units=2,
 ).to(device)
 
-
-pytorch_total_params = sum(p.numel() for p in model.parameters())/1000000
-print('Parameters in millions:',pytorch_total_params)
 
 loss_function = DiceCELoss(to_onehot_y=False, sigmoid=True)
 optimizer = torch.optim.AdamW(model.parameters(), lr=1e-4, weight_decay=1e-5)
@@ -136,7 +145,7 @@ for epoch in range(max_epochs):
         )
         optimizer.zero_grad()
         outputs = model(inputs)
-        
+
         loss = loss_function(outputs, labels)
         loss.backward()
         optimizer.step()
@@ -154,9 +163,7 @@ for epoch in range(max_epochs):
                 [Activations(sigmoid=True), AsDiscrete(threshold_values=True)]
             )
             metric_sum = metric_sum_tc = metric_sum_wt = metric_sum_et = 0.0
-            metric_count = (
-                metric_count_tc
-            ) = metric_count_wt = metric_count_et = 0
+            metric_count = metric_count_tc = metric_count_wt = metric_count_et = 0
             for val_data in val_loader:
                 val_inputs, val_labels = (
                     val_data["image"].to(device),
@@ -216,10 +223,9 @@ for epoch in range(max_epochs):
             )
 
 save_name = "./RESULTS/last.pth"
-torch.save(model.state_dict(),save_name)
+torch.save(model.state_dict(), save_name)
 
 
 print(
-    f"train completed, best_metric: {best_metric:.4f}"
-    f" at epoch: {best_metric_epoch}"
+    f"train completed, best_metric: {best_metric:.4f}" f" at epoch: {best_metric_epoch}"
 )
