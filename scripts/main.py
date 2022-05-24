@@ -25,6 +25,7 @@ from monai.transforms import (
 )
 from utils.utils import ConvertToMultiChannelBasedOnBratsClassesd
 import glob
+import nibabel as nib
 
 
 root_dir = "./"
@@ -67,7 +68,9 @@ data_dicts = [
     )
 ]
 
-print(data_dicts[0])
+for p in data_dicts[0]:
+    x = nib.load(p).get_fdata(dtype="float32", caching="unchanged")
+    print(x.shape)
 
 train_files, val_files = (
     data_dicts[: int(n_data * frac)],
