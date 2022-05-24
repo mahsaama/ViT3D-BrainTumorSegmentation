@@ -51,8 +51,6 @@ if ds == 2020:
 elif ds == 2021:
     data_dir = "../Dataset_BRATS_2021/"
 
-data_dir = "../DATASET_BRATS_2020/Training"
-
 t1_list = sorted(glob.glob(data_dir + "*/*t1.nii.gz"))
 t2_list = sorted(glob.glob(data_dir + "*/*t2.nii.gz"))
 t1ce_list = sorted(glob.glob(data_dir + "*/*t1ce.nii.gz"))
@@ -60,6 +58,7 @@ flair_list = sorted(glob.glob(data_dir + "*/*flair.nii.gz"))
 seg_list = sorted(glob.glob(data_dir + "*/*seg.nii.gz"))
 
 n_data = len(t1_list)
+print(n_data)
 
 data_dicts = [
     {"image": [t1, t2, t1ce, f], "label": label_name}
