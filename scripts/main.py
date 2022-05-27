@@ -210,7 +210,7 @@ for epoch in range(max_epochs):
     # evaluation
     model.eval()
     with torch.no_grad():
-        dice_metric = DiceMetric(include_background=True, reduction="mean")
+        dice_metric = DiceMetric(include_background=True, reduction="mean", get_not_nans=True)
         post_trans = Compose(
             [Activations(sigmoid=True), AsDiscrete(threshold_values=True)]
         )
@@ -225,27 +225,27 @@ for epoch in range(max_epochs):
             val_outputs = post_trans(val_outputs)
 
             # compute overall mean dice
-            value, not_nans = dice_metric(y_pred=val_outputs, y=val_labels, get_not_nans=True)
+            value, not_nans = dice_metric(y_pred=val_outputs, y=val_labels)
             not_nans = not_nans.mean().item()
             metric_count += not_nans
             metric_sum += value.mean().item() * not_nans
             # compute mean dice for TC
             value_tc, not_nans = dice_metric(
-                y_pred=val_outputs[:, 0:1], y=val_labels[:, 0:1], get_not_nans=True
+                y_pred=val_outputs[:, 0:1], y=val_labels[:, 0:1]
             )
             not_nans = not_nans.item()
             metric_count_tc += not_nans
             metric_sum_tc += value_tc.item() * not_nans
             # compute mean dice for WT
             value_wt, not_nans = dice_metric(
-                y_pred=val_outputs[:, 1:2], y=val_labels[:, 1:2], get_not_nans=True
+                y_pred=val_outputs[:, 1:2], y=val_labels[:, 1:2]
             )
             not_nans = not_nans.item()
             metric_count_wt += not_nans
             metric_sum_wt += value_wt.item() * not_nans
             # compute mean dice for ET
             value_et, not_nans = dice_metric(
-                y_pred=val_outputs[:, 2:3], y=val_labels[:, 2:3], get_not_nans=True
+                y_pred=val_outputs[:, 2:3], y=val_labels[:, 2:3]
             )
             not_nans = not_nans.item()
             metric_count_et += not_nans
