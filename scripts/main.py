@@ -79,11 +79,11 @@ if ds == 2020:
 elif ds == 2021:
     data_dir = "../Dataset_BRATS_2021/"
 
-t1_list = sorted(glob.glob(data_dir + "*/*t1.nii.gz"))[:10]
-t2_list = sorted(glob.glob(data_dir + "*/*t2.nii.gz"))[:10]
-t1ce_list = sorted(glob.glob(data_dir + "*/*t1ce.nii.gz"))[:10]
-flair_list = sorted(glob.glob(data_dir + "*/*flair.nii.gz"))[:10]
-seg_list = sorted(glob.glob(data_dir + "*/*seg.nii.gz"))[:10]
+t1_list = sorted(glob.glob(data_dir + "*/*t1.nii.gz"))
+t2_list = sorted(glob.glob(data_dir + "*/*t2.nii.gz"))
+t1ce_list = sorted(glob.glob(data_dir + "*/*t1ce.nii.gz"))
+flair_list = sorted(glob.glob(data_dir + "*/*flair.nii.gz"))
+seg_list = sorted(glob.glob(data_dir + "*/*seg.nii.gz"))
 
 n_data = len(t1_list)
 
@@ -170,7 +170,7 @@ model = UNETR(
     feature_size=16,
     hidden_size=embed_dim,
     mlp_dim=3072,
-    num_heads=12,
+    num_heads=num_heads,
     pos_embed="perceptron",
     norm_name="instance",
     res_block=True,
