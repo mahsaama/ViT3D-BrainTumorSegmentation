@@ -1,5 +1,5 @@
 torch
-monai
+monai==0.7.0
 nibabel
 tqdm
 einops

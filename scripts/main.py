@@ -1,3 +1,4 @@
+from concurrent.futures import thread
 import os
 import torch
 from monai.apps import DecathlonDataset
@@ -210,9 +211,9 @@ for epoch in range(max_epochs):
     # evaluation
     model.eval()
     with torch.no_grad():
-        dice_metric = DiceMetric(include_background=True, reduction="mean", get_not_nans=True)
+        dice_metric = DiceMetric(include_background=True, reduction="mean")
         post_trans = Compose(
-            [Activations(sigmoid=True), AsDiscrete()]
+            [Activations(sigmoid=True), AsDiscrete(threshold_values=True),]
         )
         metric_sum = metric_sum_tc = metric_sum_wt = metric_sum_et = 0.0
         metric_count = metric_count_tc = metric_count_wt = metric_count_et = 0
@@ -225,8 +226,6 @@ for epoch in range(max_epochs):
             val_outputs = post_trans(val_outputs)
 
             # compute overall mean dice
-            print(dice_metric(y_pred=val_outputs, y=val_labels))
-            print(dice_metric(y_pred=val_outputs, y=val_labels).item())
             value, not_nans = dice_metric(y_pred=val_outputs, y=val_labels)
             not_nans = not_nans.mean().item()
             metric_count += not_nans
