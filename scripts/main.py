@@ -183,6 +183,10 @@ optimizer = torch.optim.AdamW(model.parameters(), lr=1e-4, weight_decay=1e-5)
 
 torch.cuda.empty_cache()
 
+results_path = os.path.join(".", "RESULTS")
+if os.path.exists(results_path) == False:
+    os.mkdir(results_path)
+    
 for epoch in range(max_epochs):
     start = time.time()
     print(f"Epoch {epoch + 1}/{max_epochs}")
