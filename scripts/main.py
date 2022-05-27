@@ -103,7 +103,7 @@ random.shuffle(data_dicts)
 # print(x.shape) 
 
 
-train_files, val_files = (
+val_files, train_files = (
     data_dicts[: int(n_data * frac)],
     data_dicts[int(n_data * frac) :],
 )
@@ -154,8 +154,8 @@ val_ds = Dataset(data=val_files, transform=val_transform)
 print("Train Dataset: ", len(train_ds))
 print("Val Dataset: ", len(val_ds))
 
-train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True, num_workers=2)
-val_loader = DataLoader(val_ds, batch_size=batch_size, shuffle=False, num_workers=2)
+train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True, num_workers=1)
+val_loader = DataLoader(val_ds, batch_size=batch_size, shuffle=False, num_workers=1)
 
 print("Train Loader: ", len(train_loader))
 print("Val Loader: ", len(val_loader))
