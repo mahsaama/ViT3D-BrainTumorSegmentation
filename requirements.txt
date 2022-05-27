@@ -2,3 +2,4 @@ torch
 monai
 nibabel
 tqdm
+einops
