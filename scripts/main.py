@@ -5,6 +5,7 @@ from monai.data import DataLoader, Dataset
 from monai.losses import DiceCELoss
 from monai.metrics import DiceMetric
 from monai.networks.nets import UNet
+from monai.networks.nets import UNETR
 from monai.utils import set_determinism
 from monai.transforms import (
     Activations,
@@ -161,13 +162,18 @@ print("Train Loader: ", len(train_loader))
 print("Val Loader: ", len(val_loader))
 
 # model definition    
-model = UNet(
-    dimensions=3,
+model = UNETR(
     in_channels=4,
     out_channels=3,
-    channels=(16, 32, 64, 128, 256),
-    strides=(2, 2, 2, 2),
-    num_res_units=2,
+    img_size=tuple(roi_size),
+    feature_size=16,
+    hidden_size=embed_dim,
+    mlp_dim=3072,
+    num_heads=12,
+    pos_embed="perceptron",
+    norm_name="instance",
+    res_block=True,
+    dropout_rate=0.0,
 ).to(device)
 
 
