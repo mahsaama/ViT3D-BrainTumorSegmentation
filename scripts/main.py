@@ -28,6 +28,14 @@ import glob
 import argparse
 import time
 import nibabel as nib
+import random
+import numpy as np
+
+
+torch.manual_seed(10)
+random.seed(10)
+np.random.seed(10)
+
 
 
 parser = argparse.ArgumentParser(description="Transformer segmentation pipeline")
@@ -78,13 +86,15 @@ seg_list = sorted(glob.glob(data_dir + "*/*seg.nii.gz"))
 n_data = len(t1_list)
 
 data_dicts = [
-    {"image": [t1, t2, t1ce, f], "label": label_name}
+    {"images": [t1, t2, t1ce, f], "label": label_name}
     for t1, t2, t1ce, f, label_name in zip(
         t1_list, t2_list, t1ce_list, flair_list, seg_list
     )
 ]
 
-# for p in data_dicts[0]["image"]:
+random.shuffle(data_dicts)
+
+# for p in data_dicts[0]["images"]:
 #     x = nib.load(p).get_fdata(dtype="float32", caching="unchanged")
 #     print(x.shape)
 
@@ -100,37 +110,37 @@ train_files, val_files = (
 train_transform = Compose(
     [
         # load 4 Nifti images and stack them together
-        LoadImaged(keys=["image", "label"]),
-        AsChannelFirstd(keys="image"),
+        LoadImaged(keys=["images", "label"]),
+        AsChannelFirstd(keys="images"),
         ConvertToMultiChannelBasedOnBratsClassesd(keys="label"),
         Spacingd(
-            keys=["image", "label"],
+            keys=["images", "label"],
             pixdim=pixdim,
             mode=("bilinear", "nearest"),
         ),
-        Orientationd(keys=["image", "label"], axcodes="RAS"),
-        RandSpatialCropd(keys=["image", "label"], roi_size=roi_size, random_size=False),
-        RandFlipd(keys=["image", "label"], prob=0.5, spatial_axis=0),
-        NormalizeIntensityd(keys="image", nonzero=True, channel_wise=True),
-        RandScaleIntensityd(keys="image", factors=0.1, prob=0.5),
-        RandShiftIntensityd(keys="image", offsets=0.1, prob=0.5),
-        ToTensord(keys=["image", "label"]),
+        Orientationd(keys=["images", "label"], axcodes="RAS"),
+        RandSpatialCropd(keys=["images", "label"], roi_size=roi_size, random_size=False),
+        RandFlipd(keys=["images", "label"], prob=0.5, spatial_axis=0),
+        NormalizeIntensityd(keys="images", nonzero=True, channel_wise=True),
+        RandScaleIntensityd(keys="images", factors=0.1, prob=0.5),
+        RandShiftIntensityd(keys="images", offsets=0.1, prob=0.5),
+        ToTensord(keys=["images", "label"]),
     ]
 )
 val_transform = Compose(
     [
-        LoadImaged(keys=["image", "label"]),
-        AsChannelFirstd(keys="image"),
+        LoadImaged(keys=["images", "label"]),
+        AsChannelFirstd(keys="images"),
         ConvertToMultiChannelBasedOnBratsClassesd(keys="label"),
         Spacingd(
-            keys=["image", "label"],
+            keys=["images", "label"],
             pixdim=pixdim,
             mode=("bilinear", "nearest"),
         ),
-        Orientationd(keys=["image", "label"], axcodes="RAS"),
-        CenterSpatialCropd(keys=["image", "label"], roi_size=roi_size),
-        NormalizeIntensityd(keys="image", nonzero=True, channel_wise=True),
-        ToTensord(keys=["image", "label"]),
+        Orientationd(keys=["images", "label"], axcodes="RAS"),
+        CenterSpatialCropd(keys=["images", "label"], roi_size=roi_size),
+        NormalizeIntensityd(keys="images", nonzero=True, channel_wise=True),
+        ToTensord(keys=["images", "label"]),
     ]
 )
 
@@ -166,7 +176,7 @@ for epoch in range(max_epochs):
     for batch_data in train_loader:
         step += 1
         inputs, labels = (
-            batch_data["image"].to(device),
+            batch_data["images"].to(device),
             batch_data["label"].to(device),
         )
         print(inputs.size(), labels.size())
@@ -193,7 +203,7 @@ for epoch in range(max_epochs):
         metric_count = metric_count_tc = metric_count_wt = metric_count_et = 0
         for val_data in val_loader:
             val_inputs, val_labels = (
-                val_data["image"].to(device),
+                val_data["images"].to(device),
                 val_data["label"].to(device),
             )
             val_outputs = model(val_inputs)
