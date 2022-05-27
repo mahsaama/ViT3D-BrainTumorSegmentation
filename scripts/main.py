@@ -91,6 +91,7 @@ data_dicts = [
         t1_list, t2_list, t1ce_list, flair_list, seg_list
     )
 ]
+print("All data: ", len(data_dicts))
 
 random.shuffle(data_dicts)
 
@@ -106,6 +107,9 @@ train_files, val_files = (
     data_dicts[: int(n_data * frac)],
     data_dicts[int(n_data * frac) :],
 )
+
+print("Train data: ", len(train_files))
+print("Val data: ", len(val_files))
 
 train_transform = Compose(
     [
@@ -147,9 +151,14 @@ val_transform = Compose(
 train_ds = Dataset(data=train_files, transform=train_transform)
 val_ds = Dataset(data=val_files, transform=val_transform)
 
+print("Train Dataset: ", len(train_ds))
+print("Val Dataset: ", len(val_ds))
+
 train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True, num_workers=2)
 val_loader = DataLoader(val_ds, batch_size=batch_size, shuffle=False, num_workers=2)
 
+print("Train Loader: ", len(train_loader))
+print("Val Loader: ", len(val_loader))
 
 # model definition    
 model = UNet(
