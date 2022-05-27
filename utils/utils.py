@@ -28,3 +28,11 @@ class ConvertToMultiChannelBasedOnBratsClassesd(MapTransform):
             result.append(d[key] == 2)
             d[key] = np.stack(result, axis=0).astype(np.float32)
         return d
+    
+    
+def sec_to_minute(sec):
+    seconds = int(sec % 60)
+    minutes = int((sec / 60) % 60)
+    hours = int((sec / (60 * 60)) % 24)
+
+    return "{:02d}:{:02d}:{:02d}".format(hours, minutes, seconds)

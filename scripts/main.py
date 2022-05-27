@@ -25,7 +25,7 @@ from monai.transforms import (
     Spacingd,
     ToTensord,
 )
-from utils.utils import ConvertToMultiChannelBasedOnBratsClassesd
+from utils.utils import ConvertToMultiChannelBasedOnBratsClassesd, sec_to_minute
 import glob
 import argparse
 import time
@@ -93,7 +93,6 @@ data_dicts = [
         t1_list, t2_list, t1ce_list, flair_list, seg_list
     )
 ]
-print("All data: ", len(data_dicts))
 
 random.shuffle(data_dicts)
 
@@ -109,9 +108,6 @@ val_files, train_files = (
     data_dicts[: int(n_data * frac)],
     data_dicts[int(n_data * frac) :],
 )
-
-print("Train data: ", len(train_files))
-print("Val data: ", len(val_files))
 
 train_transform = Compose(
     [
@@ -153,14 +149,8 @@ val_transform = Compose(
 train_ds = Dataset(data=train_files, transform=train_transform)
 val_ds = Dataset(data=val_files, transform=val_transform)
 
-print("Train Dataset: ", len(train_ds))
-print("Val Dataset: ", len(val_ds))
-
 train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True, num_workers=2)
 val_loader = DataLoader(val_ds, batch_size=batch_size, shuffle=False, num_workers=2)
-
-print("Train Loader: ", len(train_loader))
-print("Val Loader: ", len(val_loader))
 
 # model definition    
 model = UNETR(
@@ -279,8 +269,9 @@ for epoch in range(max_epochs):
             print("\tsaved new best metric model")
         print(
             f"\tMean dice: {metric:.4f}\n"
-            f"\ttc: {metric_tc:.4f} wt: {metric_wt:.4f} et: {metric_et:.4f}\n"
-            f"\tbest mean dice: {best_metric:.4f} at epoch: {best_metric_epoch}"
+            f"\tTC: {metric_tc:.4f} WT: {metric_wt:.4f} ET: {metric_et:.4f}\n"
+            f"\tBest mean dice: {best_metric:.4f} at Epoch: {best_metric_epoch}\n"
+            f"\tTime: {sec_to_minute(time.time()-start)}"
         )
 
 save_name = "./RESULTS/last.pth"
@@ -288,5 +279,5 @@ torch.save(model.state_dict(), save_name)
 
 
 print(
-    f"train completed, best_metric: {best_metric:.4f}" f" at epoch: {best_metric_epoch}"
+    f"Train completed, best_metric: {best_metric:.4f}" f" at epoch: {best_metric_epoch}"
 )
