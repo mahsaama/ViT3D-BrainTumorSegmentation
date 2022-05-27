@@ -125,10 +125,10 @@ train_transform = Compose(
         ),
         Orientationd(keys=["images", "label"], axcodes="RAS"),
         RandSpatialCropd(keys=["images", "label"], roi_size=roi_size, random_size=False),
-        # RandFlipd(keys=["images", "label"], prob=0.5, spatial_axis=0),
-        # NormalizeIntensityd(keys="images", nonzero=True, channel_wise=True),
-        # RandScaleIntensityd(keys="images", factors=0.1, prob=0.5),
-        # RandShiftIntensityd(keys="images", offsets=0.1, prob=0.5),
+        RandFlipd(keys=["images", "label"], prob=0.5, spatial_axis=0),
+        NormalizeIntensityd(keys="images", nonzero=True, channel_wise=True),
+        RandScaleIntensityd(keys="images", factors=0.1, prob=0.5),
+        RandShiftIntensityd(keys="images", offsets=0.1, prob=0.5),
         ToTensord(keys=["images", "label"]),
     ]
 )
@@ -144,7 +144,7 @@ val_transform = Compose(
         ),
         Orientationd(keys=["images", "label"], axcodes="RAS"),
         CenterSpatialCropd(keys=["images", "label"], roi_size=roi_size),
-        # NormalizeIntensityd(keys="images", nonzero=True, channel_wise=True),
+        NormalizeIntensityd(keys="images", nonzero=True, channel_wise=True),
         ToTensord(keys=["images", "label"]),
     ]
 )
