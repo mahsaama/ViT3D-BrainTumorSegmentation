@@ -232,23 +232,20 @@ for epoch in range(max_epochs):
             metric_count += not_nans
             metric_sum += value.mean().item() * not_nans
             # compute mean dice for TC
-            value_tc, not_nans = dice_metric(
-                y_pred=val_outputs[:, 0:1], y=val_labels[:, 0:1]
-            )
+            dice_metric(y_pred=val_outputs[:, 0:1], y=val_labels[:, 0:1])
+            value_tc, not_nans = dice_metric.aggregate()
             not_nans = not_nans.item()
             metric_count_tc += not_nans
             metric_sum_tc += value_tc.item() * not_nans
             # compute mean dice for WT
-            value_wt, not_nans = dice_metric(
-                y_pred=val_outputs[:, 1:2], y=val_labels[:, 1:2]
-            )
+            dice_metric(y_pred=val_outputs[:, 1:2], y=val_labels[:, 1:2])
+            value_wt, not_nans = dice_metric.aggregate()
             not_nans = not_nans.item()
             metric_count_wt += not_nans
             metric_sum_wt += value_wt.item() * not_nans
             # compute mean dice for ET
-            value_et, not_nans = dice_metric(
-                y_pred=val_outputs[:, 2:3], y=val_labels[:, 2:3]
-            )
+            dice_metric(y_pred=val_outputs[:, 2:3], y=val_labels[:, 2:3])
+            value_et, not_nans = dice_metric.aggregate()
             not_nans = not_nans.item()
             metric_count_et += not_nans
             metric_sum_et += value_et.item() * not_nans
