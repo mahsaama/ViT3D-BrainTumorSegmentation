@@ -212,7 +212,7 @@ for epoch in range(max_epochs):
     with torch.no_grad():
         dice_metric = DiceMetric(include_background=True, reduction="mean", get_not_nans=True)
         post_trans = Compose(
-            [Activations(sigmoid=True), AsDiscrete(threshold_values=True)]
+            [Activations(sigmoid=True), AsDiscrete(threshold=0.6)]
         )
         metric_sum = metric_sum_tc = metric_sum_wt = metric_sum_et = 0.0
         metric_count = metric_count_tc = metric_count_wt = metric_count_et = 0
@@ -225,7 +225,7 @@ for epoch in range(max_epochs):
             val_outputs = post_trans(val_outputs)
 
             # compute overall mean dice
-            value, not_nans = dice_metric(y_pred=val_outputs, y=val_labels).aggregate()
+            value, not_nans = dice_metric(y_pred=val_outputs, y=val_labels).aggregate().item()
             not_nans = not_nans.mean().item()
             metric_count += not_nans
             metric_sum += value.mean().item() * not_nans
