@@ -225,7 +225,7 @@ for epoch in range(max_epochs):
             val_outputs = post_trans(val_outputs)
 
             # compute overall mean dice
-            value, not_nans = dice_metric(y_pred=val_outputs, y=val_labels)
+            value, not_nans = dice_metric(y_pred=val_outputs, y=val_labels).item().aggregate()
             not_nans = not_nans.mean().item()
             metric_count += not_nans
             metric_sum += value.mean().item() * not_nans
