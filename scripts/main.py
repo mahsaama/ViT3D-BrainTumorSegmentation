@@ -78,11 +78,11 @@ if ds == 2020:
 elif ds == 2021:
     data_dir = "../Dataset_BRATS_2021/"
 
-t1_list = sorted(glob.glob(data_dir + "*/*t1.nii.gz"))
-t2_list = sorted(glob.glob(data_dir + "*/*t2.nii.gz"))
-t1ce_list = sorted(glob.glob(data_dir + "*/*t1ce.nii.gz"))
-flair_list = sorted(glob.glob(data_dir + "*/*flair.nii.gz"))
-seg_list = sorted(glob.glob(data_dir + "*/*seg.nii.gz"))
+t1_list = sorted(glob.glob(data_dir + "*/*t1.nii.gz"))[:100]
+t2_list = sorted(glob.glob(data_dir + "*/*t2.nii.gz"))[:100]
+t1ce_list = sorted(glob.glob(data_dir + "*/*t1ce.nii.gz"))[:100]
+flair_list = sorted(glob.glob(data_dir + "*/*flair.nii.gz"))[:100]
+seg_list = sorted(glob.glob(data_dir + "*/*seg.nii.gz"))[:100]
 
 n_data = len(t1_list)
 
@@ -225,28 +225,28 @@ for epoch in range(max_epochs):
             val_outputs = post_trans(val_outputs)
 
             # compute overall mean dice
-            value, not_nans = dice_metric(y_pred=val_outputs, y=val_labels)
+            value, not_nans = dice_metric(y_pred=val_outputs, y=val_labels).aggregate()
             not_nans = not_nans.mean().item()
             metric_count += not_nans
             metric_sum += value.mean().item() * not_nans
             # compute mean dice for TC
             value_tc, not_nans = dice_metric(
                 y_pred=val_outputs[:, 0:1], y=val_labels[:, 0:1]
-            )
+            ).aggregate()
             not_nans = not_nans.item()
             metric_count_tc += not_nans
             metric_sum_tc += value_tc.item() * not_nans
             # compute mean dice for WT
             value_wt, not_nans = dice_metric(
                 y_pred=val_outputs[:, 1:2], y=val_labels[:, 1:2]
-            )
+            ).aggregate()
             not_nans = not_nans.item()
             metric_count_wt += not_nans
             metric_sum_wt += value_wt.item() * not_nans
             # compute mean dice for ET
             value_et, not_nans = dice_metric(
                 y_pred=val_outputs[:, 2:3], y=val_labels[:, 2:3]
-            )
+            ).aggregate()
             not_nans = not_nans.item()
             metric_count_et += not_nans
             metric_sum_et += value_et.item() * not_nans
