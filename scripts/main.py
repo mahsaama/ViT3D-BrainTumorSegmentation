@@ -39,12 +39,15 @@ random.seed(10)
 np.random.seed(10)
 
 
-
 parser = argparse.ArgumentParser(description="Transformer segmentation pipeline")
-parser.add_argument("--epochs", default=5, type=int, help="max number of training epochs")
+parser.add_argument(
+    "--epochs", default=5, type=int, help="max number of training epochs"
+)
 parser.add_argument("--batch_size", default=1, type=int, help="number of batch size")
 parser.add_argument("--dataset", default=2020, type=int, help="Dataset to use")
-parser.add_argument("--val_frac", default=0.25, type=float, help="fraction of data to use as validation")
+parser.add_argument(
+    "--val_frac", default=0.25, type=float, help="fraction of data to use as validation"
+)
 parser.add_argument("--num_heads", default=12, type=int, help="Number of heads to use")
 parser.add_argument("--embed_dim", default=768, type=int, help="Embedding dimension")
 
@@ -101,7 +104,7 @@ random.shuffle(data_dicts)
 #     print(x.shape)
 
 # x = nib.load(data_dicts[0]["label"]).get_fdata(dtype="float32", caching="unchanged")
-# print(x.shape) 
+# print(x.shape)
 
 
 val_files, train_files = (
@@ -121,7 +124,9 @@ train_transform = Compose(
             mode=("bilinear", "nearest"),
         ),
         Orientationd(keys=["images", "label"], axcodes="RAS"),
-        RandSpatialCropd(keys=["images", "label"], roi_size=roi_size, random_size=False),
+        RandSpatialCropd(
+            keys=["images", "label"], roi_size=roi_size, random_size=False
+        ),
         RandFlipd(keys=["images", "label"], prob=0.5, spatial_axis=0),
         NormalizeIntensityd(keys="images", nonzero=True, channel_wise=True),
         RandScaleIntensityd(keys="images", factors=0.1, prob=0.5),
@@ -152,7 +157,7 @@ val_ds = Dataset(data=val_files, transform=val_transform)
 train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True, num_workers=2)
 val_loader = DataLoader(val_ds, batch_size=batch_size, shuffle=False, num_workers=2)
 
-# model definition    
+# model definition
 model = UNETR(
     in_channels=4,
     out_channels=3,
@@ -176,7 +181,7 @@ torch.cuda.empty_cache()
 results_path = os.path.join(".", "RESULTS")
 if os.path.exists(results_path) == False:
     os.mkdir(results_path)
-    
+
 for epoch in range(max_epochs):
     start = time.time()
     print(f"Epoch {epoch + 1}/{max_epochs}")
@@ -205,9 +210,14 @@ for epoch in range(max_epochs):
     # evaluation
     model.eval()
     with torch.no_grad():
-        dice_metric = DiceMetric(include_background=True, reduction="mean", get_not_nans=True)
+        dice_metric = DiceMetric(
+            include_background=True, reduction="mean", get_not_nans=True
+        )
         post_trans = Compose(
-            [Activations(sigmoid=True), AsDiscrete(threshold=0.6),]
+            [
+                Activations(sigmoid=True),
+                AsDiscrete(threshold=0.6),
+            ]
         )
         metric_sum = metric_sum_tc = metric_sum_wt = metric_sum_et = 0.0
         metric_count = metric_count_tc = metric_count_wt = metric_count_et = 0
@@ -226,7 +236,7 @@ for epoch in range(max_epochs):
             not_nans = not_nans.mean().item()
             metric_count += not_nans
             metric_sum += value.mean().item() * not_nans
-            
+
             # compute mean dice for TC
             dice_metric(y_pred=val_outputs[:, 0:1], y=val_labels[:, 0:1])
             value_tc, not_nans = dice_metric.aggregate()
@@ -234,7 +244,7 @@ for epoch in range(max_epochs):
             not_nans = not_nans.item()
             metric_count_tc += not_nans
             metric_sum_tc += value_tc.item() * not_nans
-            
+
             # compute mean dice for WT
             dice_metric(y_pred=val_outputs[:, 1:2], y=val_labels[:, 1:2])
             value_wt, not_nans = dice_metric.aggregate()
@@ -242,7 +252,7 @@ for epoch in range(max_epochs):
             not_nans = not_nans.item()
             metric_count_wt += not_nans
             metric_sum_wt += value_wt.item() * not_nans
-            
+
             # compute mean dice for ET
             dice_metric(y_pred=val_outputs[:, 2:3], y=val_labels[:, 2:3])
             value_et, not_nans = dice_metric.aggregate()
