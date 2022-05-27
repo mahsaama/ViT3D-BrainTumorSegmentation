@@ -45,7 +45,7 @@ parser.add_argument("--batch_size", default=1, type=int, help="number of batch s
 parser.add_argument("--dataset", default=2020, type=int, help="Dataset to use")
 parser.add_argument("--val_frac", default=0.25, type=float, help="fraction of data to use as validation")
 parser.add_argument("--num_heads", default=12, type=int, help="Number of heads to use")
-parser.add_argument("--embed_dim", default=512, type=int, help="Embedding dimension")
+parser.add_argument("--embed_dim", default=768, type=int, help="Embedding dimension")
 
 
 args = parser.parse_args()
