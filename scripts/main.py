@@ -224,12 +224,10 @@ for epoch in range(max_epochs):
             )
             val_outputs = model(val_inputs)
             val_outputs = post_trans(val_outputs)
-            for i in dice_metric(y_pred=val_outputs, y=val_labels):
-                print(i)
+            dice_metric(y_pred=val_outputs, y=val_labels)
 
             # compute overall mean dice
-            print(dice_metric(y_pred=val_outputs, y=val_labels).aggregate())
-            value, not_nans = dice_metric(y_pred=val_outputs, y=val_labels).aggregate()
+            value, not_nans = dice_metric.aggregate()
             not_nans = not_nans.mean().item()
             metric_count += not_nans
             metric_sum += value.mean().item() * not_nans
