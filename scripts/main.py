@@ -211,7 +211,7 @@ for epoch in range(max_epochs):
     # evaluation
     model.eval()
     with torch.no_grad():
-        dice_metric = DiceMetric(include_background=True, reduction="mean", get_non_nans=True)
+        dice_metric = DiceMetric(include_background=True, reduction="mean", get_not_nans=True)
         post_trans = Compose(
             [Activations(sigmoid=True), AsDiscrete(threshold=0.6),]
         )
