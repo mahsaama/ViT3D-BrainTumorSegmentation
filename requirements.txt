@@ -1,5 +1,5 @@
+git+https://github.com/Project-MONAI/MONAI#egg.gitmonai@0.8.1+271.g07de215c
 torch
-monai
 nibabel
 tqdm
 einops
