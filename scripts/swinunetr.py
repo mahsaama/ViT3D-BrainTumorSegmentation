@@ -179,7 +179,7 @@ model = SwinUNETR(img_size=tuple(roi_size),
                     use_checkpoint=False,
                     ).to(device)
 
-weight = torch.load('./pretrained_models/model_swinvit.pt')
+weight = torch.load('./model_swinvit.pt')
 model.load_from(weights=weight)
 print('Using pretrained self-supervied Swin UNETR backbone weights !')
             
