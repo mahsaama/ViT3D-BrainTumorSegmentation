@@ -22,7 +22,11 @@ from monai.transforms import (
     Spacingd,
     ToTensord,
 )
-from utils.utils import ConvertToMultiChannelBasedOnBratsClassesd, sec_to_minute
+from utils.utils import (
+    ConvertToMultiChannelBasedOnBratsClassesd,
+    sec_to_minute,
+    LinearWarmupCosineAnnealingLR,
+)
 import glob
 import argparse
 import time
@@ -169,23 +173,24 @@ val_loader = DataLoader(val_ds, batch_size=batch_size, shuffle=False, num_worker
 #     dropout_rate=0.0,
 # ).to(device)
 
-model = SwinUNETR(img_size=tuple(roi_size),
-                    in_channels=4,
-                    out_channels=3,
-                    feature_size=48,
-                    drop_rate=0.0,
-                    attn_drop_rate=0.0,
-                    dropout_path_rate=0.0,
-                    use_checkpoint=False,
-                    ).to(device)
+model = SwinUNETR(
+    img_size=tuple(roi_size),
+    in_channels=4,
+    out_channels=3,
+    feature_size=48,
+    drop_rate=0.0,
+    attn_drop_rate=0.0,
+    dropout_path_rate=0.0,
+    use_checkpoint=False,
+).to(device)
 
-weight = torch.load('./model_swinvit.pt')
+weight = torch.load("./model_swinvit.pt")
 model.load_from(weights=weight)
-print('Using pretrained self-supervied Swin UNETR backbone weights !')
-            
+print("Using pretrained self-supervied Swin UNETR backbone weights !")
+
 loss_function = DiceCELoss(to_onehot_y=False, sigmoid=True)
 optimizer = torch.optim.AdamW(model.parameters(), lr=1e-4, weight_decay=1e-5)
-
+scheduler = LinearWarmupCosineAnnealingLR(optimizer, warmup_epochs=5, max_epochs=max_epochs)
 torch.cuda.empty_cache()
 
 results_path = os.path.join(".", "RESULTS")
@@ -293,6 +298,8 @@ for epoch in range(max_epochs):
             f"\tBest mean dice: {best_metric:.4f} at Epoch: {best_metric_epoch}\n"
             f"\tTime: {sec_to_minute(time.time()-start)}"
         )
+    scheduler.step()
+    
 
 save_name = "./RESULTS/last.pth"
 torch.save(model.state_dict(), save_name)
