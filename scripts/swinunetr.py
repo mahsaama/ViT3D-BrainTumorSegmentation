@@ -184,9 +184,9 @@ model = SwinUNETR(
     use_checkpoint=False,
 ).to(device)
 
-# weight = torch.load("./model_swinvit.pt")
-# model.load_from(weights=weight)
-# print("Using pretrained self-supervied Swin UNETR backbone weights !")
+weight = torch.load("./model_swinvit.pt")
+model.load_from(weights=weight)
+print("Using pretrained self-supervied Swin UNETR backbone weights !")
 
 loss_function = DiceCELoss(to_onehot_y=False, sigmoid=True)
 optimizer = torch.optim.AdamW(model.parameters(), lr=1e-4, weight_decay=1e-5)
