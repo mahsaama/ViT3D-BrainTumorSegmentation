@@ -184,13 +184,13 @@ model = SwinUNETR(
     use_checkpoint=False,
 ).to(device)
 
-weight = torch.load("./model_swinvit.pt")
-model.load_from(weights=weight)
-print("Using pretrained self-supervied Swin UNETR backbone weights !")
+# weight = torch.load("./model_swinvit.pt")
+# model.load_from(weights=weight)
+# print("Using pretrained self-supervied Swin UNETR backbone weights !")
 
 loss_function = DiceCELoss(to_onehot_y=False, sigmoid=True)
 optimizer = torch.optim.AdamW(model.parameters(), lr=1e-4, weight_decay=1e-5)
-scheduler = LinearWarmupCosineAnnealingLR(optimizer, warmup_epochs=5, max_epochs=max_epochs)
+# scheduler = LinearWarmupCosineAnnealingLR(optimizer, warmup_epochs=5, max_epochs=max_epochs)
 torch.cuda.empty_cache()
 
 results_path = os.path.join(".", "RESULTS")
@@ -298,7 +298,7 @@ for epoch in range(max_epochs):
             f"\tBest mean dice: {best_metric:.4f} at Epoch: {best_metric_epoch}\n"
             f"\tTime: {sec_to_minute(time.time()-start)}"
         )
-    scheduler.step()
+    # scheduler.step()
     
 
 save_name = "./RESULTS/last.pth"
