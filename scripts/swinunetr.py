@@ -155,9 +155,6 @@ val_transform = Compose(
 train_ds = Dataset(data=train_files, transform=train_transform)
 val_ds = Dataset(data=val_files, transform=val_transform)
 
-print(train_ds.size())
-print(val_ds.size())
-
 train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True, num_workers=2)
 val_loader = DataLoader(val_ds, batch_size=batch_size, shuffle=False, num_workers=2)
 
@@ -218,7 +215,7 @@ for epoch in range(max_epochs):
             batch_data["images"].to(device),
             batch_data["label"].to(device),
         )
-        # print(inputs.size(), labels.size())
+        print(inputs.size(), labels.size())
         optimizer.zero_grad()
         outputs = model(inputs)
 
