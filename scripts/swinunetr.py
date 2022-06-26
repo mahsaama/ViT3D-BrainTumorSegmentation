@@ -1,7 +1,7 @@
 import os
 import torch
 from monai.data import DataLoader, Dataset
-from monai.losses import DiceCELoss
+from monai.losses.dice import DiceCELoss
 from monai.metrics import DiceMetric
 from monai.networks.nets import SwinUNETR
 from monai.utils import set_determinism
