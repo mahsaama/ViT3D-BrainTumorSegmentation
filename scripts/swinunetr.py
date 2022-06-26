@@ -215,11 +215,11 @@ for epoch in range(max_epochs):
             batch_data["images"].to(device),
             batch_data["label"].to(device),
         )
-        print(inputs.size(), labels.size())
+        # print(inputs.size(), labels.size())
         optimizer.zero_grad()
         outputs = model(inputs)
 
-        loss = loss_function(outputs, labels)
+        loss = loss_function(outputs, labels, ce_weight=class_weights)
         loss.backward()
         optimizer.step()
         epoch_loss += loss.item()
