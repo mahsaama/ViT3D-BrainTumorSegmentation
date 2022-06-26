@@ -194,7 +194,7 @@ weight = torch.load("./model_swinvit.pt")
 model.load_from(weights=weight)
 print("Using pretrained self-supervied Swin UNETR backbone weights !")
 
-loss_function = DiceCELoss(to_onehot_y=False, sigmoid=True)
+loss_function = DiceCELoss(to_onehot_y=False, sigmoid=True, ce_weight=class_weights)
 optimizer = torch.optim.AdamW(model.parameters(), lr=1e-4, weight_decay=1e-5)
 scheduler = LinearWarmupCosineAnnealingLR(optimizer, warmup_epochs=1, max_epochs=max_epochs)
 torch.cuda.empty_cache()
@@ -219,7 +219,7 @@ for epoch in range(max_epochs):
         optimizer.zero_grad()
         outputs = model(inputs)
 
-        loss = loss_function(outputs, labels, ce_weight=class_weights)
+        loss = loss_function(outputs, labels)
         loss.backward()
         optimizer.step()
         epoch_loss += loss.item()
