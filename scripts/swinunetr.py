@@ -176,7 +176,7 @@ val_loader = DataLoader(val_ds, batch_size=batch_size, shuffle=False, num_worker
 # ).to(device)
 
 # class weights
-class_weights = np.array([0.25659472, 45.465614, 16.543337, 49.11155], dtype="f")
+class_weights = np.array([45.465614, 16.543337, 49.11155], dtype="f")
 weights = torch.tensor(class_weights, dtype=torch.float32, device=torch.device('cuda:0'))
 
 model = SwinUNETR(
