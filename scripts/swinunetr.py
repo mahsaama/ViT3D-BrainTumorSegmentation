@@ -158,6 +158,9 @@ val_ds = Dataset(data=val_files, transform=val_transform)
 train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True, num_workers=2)
 val_loader = DataLoader(val_ds, batch_size=batch_size, shuffle=False, num_workers=2)
 
+print(train_loader.size())
+print(val_loader.size())
+
 # model definition
 # model = UNETR(
 #     in_channels=4,
@@ -172,6 +175,10 @@ val_loader = DataLoader(val_ds, batch_size=batch_size, shuffle=False, num_worker
 #     res_block=True,
 #     dropout_rate=0.0,
 # ).to(device)
+
+# class weights
+class_weights = np.array([0.25659472, 45.465614, 16.543337, 49.11155], dtype="f")
+
 
 model = SwinUNETR(
     img_size=tuple(roi_size),

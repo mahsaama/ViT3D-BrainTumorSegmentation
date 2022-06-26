@@ -1,25 +1,82 @@
 from monai.transforms import MapTransform
 import numpy as np
-
-
+import torch
 import math
 import warnings
 from typing import List
-
 from torch.optim.lr_scheduler import LambdaLR, _LRScheduler
 from torch import nn as nn
 from torch.optim import Adam, Optimizer
 from torch.optim.lr_scheduler import _LRScheduler
+from torch.nn import functional as F
 
 
 __all__ = ["LinearLR", "ExponentialLR"]
+
+
+def ce_loss(true, logits, weights, ignore=255):
+    """Computes the weighted multi-class cross-entropy loss.
+    Args:
+        true: a tensor of shape [B, 1, H, W].
+        logits: a tensor of shape [B, C, H, W]. Corresponds to
+            the raw output or logits of the model.
+        weight: a tensor of shape [C,]. The weights attributed
+            to each class.
+        ignore: the class index to ignore.
+    Returns:
+        ce_loss: the weighted multi-class cross-entropy loss.
+    """
+    ce_loss = F.cross_entropy(
+        logits.float(),
+        true.long(),
+        ignore_index=ignore,
+        weight=weights,
+    )
+    return ce_loss
+
+
+def dice_loss(true, logits, eps=1e-7):
+    """Computes the Sørensen–Dice loss.
+    Note that PyTorch optimizers minimize a loss. In this
+    case, we would like to maximize the dice loss so we
+    return the negated dice loss.
+    Args:
+        true: a tensor of shape [B, 1, H, W].
+        logits: a tensor of shape [B, C, H, W]. Corresponds to
+            the raw output or logits of the model.
+        eps: added to the denominator for numerical stability.
+    Returns:
+        dice_loss: the Sørensen–Dice loss.
+    """
+    num_classes = logits.shape[1]
+    if num_classes == 1:
+        true_1_hot = torch.eye(num_classes + 1)[true.squeeze(1)]
+        true_1_hot = true_1_hot.permute(0, 3, 1, 2).float()
+        true_1_hot_f = true_1_hot[:, 0:1, :, :]
+        true_1_hot_s = true_1_hot[:, 1:2, :, :]
+        true_1_hot = torch.cat([true_1_hot_s, true_1_hot_f], dim=1)
+        pos_prob = torch.sigmoid(logits)
+        neg_prob = 1 - pos_prob
+        probas = torch.cat([pos_prob, neg_prob], dim=1)
+    else:
+        true_1_hot = torch.eye(num_classes)[true.squeeze(1)]
+        true_1_hot = true_1_hot.permute(0, 3, 1, 2).float()
+        probas = F.softmax(logits, dim=1)
+    true_1_hot = true_1_hot.type(logits.type())
+    dims = (0,) + tuple(range(2, true.ndimension()))
+    intersection = torch.sum(probas * true_1_hot, dims)
+    cardinality = torch.sum(probas + true_1_hot, dims)
+    dice_loss = (2.0 * intersection / (cardinality + eps)).mean()
+    return 1 - dice_loss
 
 
 class _LRSchedulerMONAI(_LRScheduler):
     """Base class for increasing the learning rate between two boundaries over a number
     of iterations"""
 
-    def __init__(self, optimizer: Optimizer, end_lr: float, num_iter: int, last_epoch: int = -1) -> None:
+    def __init__(
+        self, optimizer: Optimizer, end_lr: float, num_iter: int, last_epoch: int = -1
+    ) -> None:
         """
         Args:
             optimizer: wrapped optimizer.
@@ -60,7 +117,12 @@ class WarmupCosineSchedule(LambdaLR):
     """
 
     def __init__(
-        self, optimizer: Optimizer, warmup_steps: int, t_total: int, cycles: float = 0.5, last_epoch: int = -1
+        self,
+        optimizer: Optimizer,
+        warmup_steps: int,
+        t_total: int,
+        cycles: float = 0.5,
+        last_epoch: int = -1,
     ) -> None:
         """
         Args:
@@ -75,16 +137,22 @@ class WarmupCosineSchedule(LambdaLR):
         self.warmup_steps = warmup_steps
         self.t_total = t_total
         self.cycles = cycles
-        super(WarmupCosineSchedule, self).__init__(optimizer, self.lr_lambda, last_epoch)
+        super(WarmupCosineSchedule, self).__init__(
+            optimizer, self.lr_lambda, last_epoch
+        )
 
     def lr_lambda(self, step):
         if step < self.warmup_steps:
             return float(step) / float(max(1.0, self.warmup_steps))
-        progress = float(step - self.warmup_steps) / float(max(1, self.t_total - self.warmup_steps))
-        return max(0.0, 0.5 * (1.0 + math.cos(math.pi * float(self.cycles) * 2.0 * progress)))
+        progress = float(step - self.warmup_steps) / float(
+            max(1, self.t_total - self.warmup_steps)
+        )
+        return max(
+            0.0, 0.5 * (1.0 + math.cos(math.pi * float(self.cycles) * 2.0 * progress))
+        )
+
 
 class LinearWarmupCosineAnnealingLR(_LRScheduler):
-
     def __init__(
         self,
         optimizer: Optimizer,
@@ -125,24 +193,43 @@ class LinearWarmupCosineAnnealingLR(_LRScheduler):
             return [self.warmup_start_lr] * len(self.base_lrs)
         elif self.last_epoch < self.warmup_epochs:
             return [
-                group["lr"] + (base_lr - self.warmup_start_lr) / (self.warmup_epochs - 1)
+                group["lr"]
+                + (base_lr - self.warmup_start_lr) / (self.warmup_epochs - 1)
                 for base_lr, group in zip(self.base_lrs, self.optimizer.param_groups)
             ]
         elif self.last_epoch == self.warmup_epochs:
             return self.base_lrs
-        elif (self.last_epoch - 1 - self.max_epochs) % (2 * (self.max_epochs - self.warmup_epochs)) == 0:
+        elif (self.last_epoch - 1 - self.max_epochs) % (
+            2 * (self.max_epochs - self.warmup_epochs)
+        ) == 0:
             return [
-                group["lr"] + (base_lr - self.eta_min) *
-                (1 - math.cos(math.pi / (self.max_epochs - self.warmup_epochs))) / 2
+                group["lr"]
+                + (base_lr - self.eta_min)
+                * (1 - math.cos(math.pi / (self.max_epochs - self.warmup_epochs)))
+                / 2
                 for base_lr, group in zip(self.base_lrs, self.optimizer.param_groups)
             ]
 
         return [
-            (1 + math.cos(math.pi * (self.last_epoch - self.warmup_epochs) / (self.max_epochs - self.warmup_epochs))) /
             (
-                1 +
-                math.cos(math.pi * (self.last_epoch - self.warmup_epochs - 1) / (self.max_epochs - self.warmup_epochs))
-            ) * (group["lr"] - self.eta_min) + self.eta_min for group in self.optimizer.param_groups
+                1
+                + math.cos(
+                    math.pi
+                    * (self.last_epoch - self.warmup_epochs)
+                    / (self.max_epochs - self.warmup_epochs)
+                )
+            )
+            / (
+                1
+                + math.cos(
+                    math.pi
+                    * (self.last_epoch - self.warmup_epochs - 1)
+                    / (self.max_epochs - self.warmup_epochs)
+                )
+            )
+            * (group["lr"] - self.eta_min)
+            + self.eta_min
+            for group in self.optimizer.param_groups
         ]
 
     def _get_closed_form_lr(self) -> List[float]:
@@ -151,16 +238,29 @@ class LinearWarmupCosineAnnealingLR(_LRScheduler):
         """
         if self.last_epoch < self.warmup_epochs:
             return [
-                self.warmup_start_lr + self.last_epoch * (base_lr - self.warmup_start_lr) / (self.warmup_epochs - 1)
+                self.warmup_start_lr
+                + self.last_epoch
+                * (base_lr - self.warmup_start_lr)
+                / (self.warmup_epochs - 1)
                 for base_lr in self.base_lrs
             ]
 
         return [
-            self.eta_min + 0.5 * (base_lr - self.eta_min) *
-            (1 + math.cos(math.pi * (self.last_epoch - self.warmup_epochs) / (self.max_epochs - self.warmup_epochs)))
+            self.eta_min
+            + 0.5
+            * (base_lr - self.eta_min)
+            * (
+                1
+                + math.cos(
+                    math.pi
+                    * (self.last_epoch - self.warmup_epochs)
+                    / (self.max_epochs - self.warmup_epochs)
+                )
+            )
             for base_lr in self.base_lrs
         ]
-        
+
+
 class ConvertToMultiChannelBasedOnBratsClassesd(MapTransform):
     """
     Convert labels to multi channels based on brats classes:
@@ -180,16 +280,14 @@ class ConvertToMultiChannelBasedOnBratsClassesd(MapTransform):
             result.append(np.logical_or(d[key] == 2, d[key] == 3))
             # merge labels 1, 2 and 3 to construct WT
             result.append(
-                np.logical_or(
-                    np.logical_or(d[key] == 2, d[key] == 3), d[key] == 1
-                )
+                np.logical_or(np.logical_or(d[key] == 2, d[key] == 3), d[key] == 1)
             )
             # label 2 is ET
             result.append(d[key] == 2)
             d[key] = np.stack(result, axis=0).astype(np.float32)
         return d
-    
-    
+
+
 def sec_to_minute(sec):
     seconds = int(sec % 60)
     minutes = int((sec / 60) % 60)
