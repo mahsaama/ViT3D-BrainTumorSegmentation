@@ -176,7 +176,7 @@ val_loader = DataLoader(val_ds, batch_size=batch_size, shuffle=False, num_worker
 # ).to(device)
 
 # class weights
-class_weights = np.array([1, 5, 10], dtype="f")
+class_weights = np.array([45.465614, 16.543337, 49.11155], dtype="f")
 weights = torch.tensor(class_weights, dtype=torch.float32, device=torch.device('cuda:0'))
 
 model = SwinUNETR(
@@ -190,9 +190,9 @@ model = SwinUNETR(
     use_checkpoint=False,
 ).to(device)
 
-weight = torch.load("./model_swinvit.pt")
-model.load_from(weights=weight)
-print("Using pretrained self-supervied Swin UNETR backbone weights !")
+# weight = torch.load("./model_swinvit.pt")
+# model.load_from(weights=weight)
+# print("Using pretrained self-supervied Swin UNETR backbone weights !")
 
 loss_function = DiceCELoss(to_onehot_y=False, sigmoid=True, ce_weight=weights)
 optimizer = torch.optim.AdamW(model.parameters(), lr=1e-4, weight_decay=1e-5)
