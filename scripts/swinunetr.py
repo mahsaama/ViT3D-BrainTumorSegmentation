@@ -45,7 +45,7 @@ parser.add_argument(
     "--epochs", default=5, type=int, help="max number of training epochs"
 )
 parser.add_argument("--batch_size", default=1, type=int, help="number of batch size")
-parser.add_argument("--dataset", default=2020, type=int, help="Dataset to use")
+parser.add_argument("--dataset", default="2020", type=str, help="Dataset to use")
 parser.add_argument(
     "--val_frac", default=0.25, type=float, help="fraction of data to use as validation"
 )
@@ -66,7 +66,7 @@ batch_size = args.batch_size
 num_heads = args.num_heads
 embed_dim = args.embed_dim
 
-roi_size = [128, 128, 64]
+roi_size = [128, 128, 64] # TODO: change 64 to 128
 pixdim = (1.5, 1.5, 2.0)
 
 best_metric = -1
@@ -78,16 +78,33 @@ metric_values_tc = []
 metric_values_wt = []
 metric_values_et = []
 
-if ds == 2020:
+if ds == "2020":
     data_dir = "../Dataset_BRATS_2020/Training/"
-elif ds == 2021:
+    t1_list = sorted(glob.glob(data_dir + "*/*t1.nii.gz"))
+    t2_list = sorted(glob.glob(data_dir + "*/*t2.nii.gz"))
+    t1ce_list = sorted(glob.glob(data_dir + "*/*t1ce.nii.gz"))
+    flair_list = sorted(glob.glob(data_dir + "*/*flair.nii.gz"))
+    seg_list = sorted(glob.glob(data_dir + "*/*seg.nii.gz"))
+elif ds == "2021":
     data_dir = "../Dataset_BRATS_2021/"
-
-t1_list = sorted(glob.glob(data_dir + "*/*t1.nii.gz"))
-t2_list = sorted(glob.glob(data_dir + "*/*t2.nii.gz"))
-t1ce_list = sorted(glob.glob(data_dir + "*/*t1ce.nii.gz"))
-flair_list = sorted(glob.glob(data_dir + "*/*flair.nii.gz"))
-seg_list = sorted(glob.glob(data_dir + "*/*seg.nii.gz"))
+    t1_list = sorted(glob.glob(data_dir + "*/*t1.nii.gz"))
+    t2_list = sorted(glob.glob(data_dir + "*/*t2.nii.gz"))
+    t1ce_list = sorted(glob.glob(data_dir + "*/*t1ce.nii.gz"))
+    flair_list = sorted(glob.glob(data_dir + "*/*flair.nii.gz"))
+    seg_list = sorted(glob.glob(data_dir + "*/*seg.nii.gz"))
+elif ds == "2020-2021":  # combiantion of 2020 and 2021, TODO: remove
+    data_dir = "../Dataset_BRATS_2020/Training/"
+    t1_list = sorted(glob.glob(data_dir + "*/*t1.nii.gz"))
+    t2_list = sorted(glob.glob(data_dir + "*/*t2.nii.gz"))
+    t1ce_list = sorted(glob.glob(data_dir + "*/*t1ce.nii.gz"))
+    flair_list = sorted(glob.glob(data_dir + "*/*flair.nii.gz"))
+    seg_list = sorted(glob.glob(data_dir + "*/*seg.nii.gz"))
+    data_dir = "../Dataset_BRATS_2021/"
+    t1_list += sorted(glob.glob(data_dir + "*/*t1.nii.gz"))
+    t2_list += sorted(glob.glob(data_dir + "*/*t2.nii.gz"))
+    t1ce_list += sorted(glob.glob(data_dir + "*/*t1ce.nii.gz"))
+    flair_list += sorted(glob.glob(data_dir + "*/*flair.nii.gz"))
+    seg_list += sorted(glob.glob(data_dir + "*/*seg.nii.gz"))
 
 n_data = len(t1_list)
 
@@ -159,7 +176,6 @@ train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True, num_wor
 val_loader = DataLoader(val_ds, batch_size=batch_size, shuffle=False, num_workers=2)
 
 
-
 # model definition
 # model = UNETR(
 #     in_channels=4,
@@ -177,7 +193,9 @@ val_loader = DataLoader(val_ds, batch_size=batch_size, shuffle=False, num_worker
 
 # class weights
 class_weights = np.array([45.465614, 16.543337, 49.11155], dtype="f")
-weights = torch.tensor(class_weights, dtype=torch.float32, device=torch.device('cuda:0'))
+weights = torch.tensor(
+    class_weights, dtype=torch.float32, device=torch.device("cuda:0")
+)
 
 model = SwinUNETR(
     img_size=tuple(roi_size),
@@ -196,7 +214,9 @@ model = SwinUNETR(
 
 loss_function = DiceCELoss(to_onehot_y=False, sigmoid=True, ce_weight=weights)
 optimizer = torch.optim.AdamW(model.parameters(), lr=1e-4, weight_decay=1e-5)
-scheduler = LinearWarmupCosineAnnealingLR(optimizer, warmup_epochs=1, max_epochs=max_epochs)
+scheduler = LinearWarmupCosineAnnealingLR(
+    optimizer, warmup_epochs=1, max_epochs=max_epochs
+)
 torch.cuda.empty_cache()
 
 results_path = os.path.join(".", "RESULTS")
@@ -305,7 +325,7 @@ for epoch in range(max_epochs):
             f"\tTime: {sec_to_minute(time.time()-start)}"
         )
     scheduler.step()
-    
+
 
 save_name = "./RESULTS/last.pth"
 torch.save(model.state_dict(), save_name)
