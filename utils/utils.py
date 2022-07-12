@@ -16,7 +16,6 @@ class BinaryLabel_WT(MapTransform):
     
     def __call__(self, data):
         d = dict(data)
-        print("before: ", d.keys())
         for key in self.keys:
             result = []
             # merge label 2 and label 3 to construct TC
