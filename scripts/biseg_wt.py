@@ -230,7 +230,8 @@ for epoch in range(max_epochs):
             batch_data["images"].to(device),
             batch_data["label"].to(device),
         )
-        print(type(inputs), type(labels))
+        # print(type(inputs), type(labels))
+        print(torch.unique(labels))
         # print(inputs.size(), labels.size())
         optimizer.zero_grad()
         outputs = model(inputs)
