@@ -230,11 +230,10 @@ for epoch in range(max_epochs):
             batch_data["images"].to(device),
             batch_data["label"].to(device),
         )
-        print(torch.unique(labels))
+        # print(torch.unique(labels))
         # print(inputs.size(), labels.size())
         optimizer.zero_grad()
         outputs = model(inputs)
-        print(outputs.size(), type(outputs), torch.unique(outputs))
 
         loss = loss_function(outputs, labels)
         loss.backward()
@@ -266,6 +265,7 @@ for epoch in range(max_epochs):
             )
             val_outputs = model(val_inputs)
             val_outputs = post_trans(val_outputs)
+            print(torch.unique(val_outputs))
             dice_metric(y_pred=val_outputs, y=val_labels)
 
             # compute overall mean dice
