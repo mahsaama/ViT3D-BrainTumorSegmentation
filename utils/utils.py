@@ -16,7 +16,7 @@ class BinaryLabel_WT(MapTransform):
     
     def __call__(self, data):
         d = dict(data)
-        print("before: ", d)
+        print("before: ", d.keys())
         for key in self.keys:
             result = []
             # merge label 2 and label 3 to construct TC
@@ -28,7 +28,6 @@ class BinaryLabel_WT(MapTransform):
             # label 2 is ET
             # result.append(d[key] == 2)
             d[key] = np.stack(result, axis=0).astype(np.float32)
-        print("after: ", d)
         return d
     
 class _LRSchedulerMONAI(_LRScheduler):
