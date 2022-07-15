@@ -68,7 +68,7 @@ batch_size = args.batch_size
 num_heads = args.num_heads
 embed_dim = args.embed_dim
 
-roi_size = [128, 128, 64] # TODO: change 64 to 128
+roi_size = [128, 128, 64]  # TODO: change 64 to 128
 pixdim = (1.5, 1.5, 2.0)
 
 best_metric = -1
@@ -213,9 +213,7 @@ optimizer = torch.optim.AdamW(model.parameters(), lr=1e-4, weight_decay=1e-5)
 scheduler = LinearWarmupCosineAnnealingLR(
     optimizer, warmup_epochs=1, max_epochs=max_epochs
 )
-dice_metric = DiceMetric(
-    include_background=True, reduction="mean", get_not_nans=True
-)
+dice_metric = DiceMetric(include_background=True, reduction="mean", get_not_nans=True)
 post_trans = Compose(
     [
         Activations(sigmoid=True),
@@ -245,15 +243,15 @@ for epoch in range(max_epochs):
         label_np = labels.cpu().detach().numpy()
         # plt.imsave('true_label.png', label_np[0, 0, :, :, 32])
         # print("image saved!")
-        
+
         optimizer.zero_grad()
         outputs = model(inputs)
         outputs_np = outputs.cpu().detach().numpy()
         # plt.imsave('pred_label.png', outputs_np[0, 0, :, :, 32])
-        print(np.squeeze(label_np.shape), np.squeeze(outputs_np.shape))
+        print(np.squeeze(label_np).shape, np.squeeze(outputs_np).shape)
         arr = np.concatenate((label_np, outputs_np), axis=0)
-        plt.imsave('true_pred.png', arr)
-        print('image saved!')
+        plt.imsave("true_pred.png", arr)
+        print("image saved!")
 
         loss = loss_function(outputs, labels)
         loss.backward()
