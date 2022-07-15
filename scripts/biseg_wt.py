@@ -241,7 +241,7 @@ for epoch in range(max_epochs):
         )
         # print(torch.unique(labels))
         # print(inputs.size(), labels.size())
-        print(labels.numpy().shape)
+        print(labels.cpu().detach().numpy().shape)
         optimizer.zero_grad()
         outputs = model(inputs)
 
