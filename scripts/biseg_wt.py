@@ -244,9 +244,11 @@ for epoch in range(max_epochs):
         # print(inputs.size(), labels.size())
         label_np = labels.cpu().detach().numpy()
         plt.imsave('true_label.png', label_np[0, 0, :, :, 32])
-
+        print("image saved!")
+        
         optimizer.zero_grad()
         outputs = model(inputs)
+        print(outputs.size())
 
         loss = loss_function(outputs, labels)
         loss.backward()
