@@ -242,7 +242,7 @@ for epoch in range(max_epochs):
         )
         # print(torch.unique(labels))
         # print(inputs.size(), labels.size())
-        label_np = labels.cpu().detach().numpy().shape
+        label_np = labels.cpu().detach().numpy()
         plt.imsave('true_label.png', label_np[0, 0, :, :, 32])
 
         optimizer.zero_grad()
