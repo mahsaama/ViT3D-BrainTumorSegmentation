@@ -248,7 +248,9 @@ for epoch in range(max_epochs):
         
         optimizer.zero_grad()
         outputs = model(inputs)
-        print(outputs.size())
+        outputs_np = outputs.cpu().detach().numpy()
+        plt.imsave('pred_label.png', outputs_np[0, 0, :, :, 32])
+        print('predicted image saved!')
 
         loss = loss_function(outputs, labels)
         loss.backward()
