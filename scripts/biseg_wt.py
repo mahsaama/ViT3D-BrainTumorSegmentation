@@ -248,7 +248,7 @@ for epoch in range(max_epochs):
         outputs = model(inputs)
         outputs_np = np.squeeze(outputs.cpu().detach().numpy())
         # plt.imsave('pred_label.png', outputs_np[0, 0, :, :, 32])
-        arr = np.concatenate((label_np, outputs_np), axis=-1)
+        arr = np.concatenate((label_np[:, :, 32], outputs_np[:, :, 32]), axis=-1)
         plt.imsave("true_pred.png", arr)
         print("image saved!")
 
