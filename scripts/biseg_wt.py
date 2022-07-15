@@ -212,6 +212,15 @@ optimizer = torch.optim.AdamW(model.parameters(), lr=1e-4, weight_decay=1e-5)
 scheduler = LinearWarmupCosineAnnealingLR(
     optimizer, warmup_epochs=1, max_epochs=max_epochs
 )
+dice_metric = DiceMetric(
+    include_background=True, reduction="mean", get_not_nans=True
+)
+post_trans = Compose(
+    [
+        Activations(sigmoid=True),
+        AsDiscrete(threshold=0.6),
+    ]
+)
 torch.cuda.empty_cache()
 
 results_path = os.path.join(".", "RESULTS")
@@ -231,7 +240,8 @@ for epoch in range(max_epochs):
             batch_data["label"].to(device),
         )
         # print(torch.unique(labels))
-        print(inputs.size(), labels.size())
+        # print(inputs.size(), labels.size())
+        print(labels.numpy().shape)
         optimizer.zero_grad()
         outputs = model(inputs)
 
@@ -247,15 +257,6 @@ for epoch in range(max_epochs):
     # evaluation
     model.eval()
     with torch.no_grad():
-        dice_metric = DiceMetric(
-            include_background=True, reduction="mean", get_not_nans=True
-        )
-        post_trans = Compose(
-            [
-                Activations(sigmoid=True),
-                AsDiscrete(threshold=0.6),
-            ]
-        )
         metric_sum = metric_sum_tc = metric_sum_wt = metric_sum_et = 0.0
         metric_count = metric_count_tc = metric_count_wt = metric_count_et = 0
         for val_data in val_loader:
