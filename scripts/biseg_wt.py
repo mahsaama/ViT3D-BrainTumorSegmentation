@@ -34,6 +34,7 @@ import time
 import nibabel as nib
 import random
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 torch.manual_seed(10)
@@ -241,7 +242,9 @@ for epoch in range(max_epochs):
         )
         # print(torch.unique(labels))
         # print(inputs.size(), labels.size())
-        print(labels.cpu().detach().numpy().shape)
+        label_np = labels.cpu().detach().numpy().shape
+        plt.imsave('true_label.png', label_np[0, 0, :, :, 32])
+
         optimizer.zero_grad()
         outputs = model(inputs)
 
