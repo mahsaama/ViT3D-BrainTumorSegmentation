@@ -240,17 +240,14 @@ for epoch in range(max_epochs):
         )
         # print(torch.unique(labels))
         # print(inputs.size(), labels.size())
-        label_np = np.squeeze(labels.cpu().detach().numpy())
-        # plt.imsave('true_label.png', label_np[0, 0, :, :, 32])
-        # print("image saved!")
-
         optimizer.zero_grad()
         outputs = model(inputs)
-        outputs_np = np.squeeze(outputs.cpu().detach().numpy())
-        # plt.imsave('pred_label.png', outputs_np[0, 0, :, :, 32])
-        arr = np.concatenate((label_np[:, :, 32], outputs_np[:, :, 32]), axis=-1)
-        plt.imsave("true_pred.png", arr)
-        print("image saved!")
+        
+        # label_np = np.squeeze(labels.cpu().detach().numpy())
+        # outputs_np = np.squeeze(outputs.cpu().detach().numpy())
+        # arr = np.concatenate((label_np[:, :, 32], outputs_np[:, :, 32]), axis=-1)
+        # plt.imsave("true_pred.png", arr)
+        # print("image saved!")
 
         loss = loss_function(outputs, labels)
         loss.backward()
@@ -273,7 +270,13 @@ for epoch in range(max_epochs):
             )
             val_outputs = model(val_inputs)
             val_outputs = post_trans(val_outputs)
-            print(torch.unique(val_outputs))
+
+            label_np = np.squeeze(val_labels.cpu().detach().numpy())
+            outputs_np = np.squeeze(val_outputs.cpu().detach().numpy())
+            arr = np.concatenate((label_np[:, :, 32], outputs_np[:, :, 32]), axis=-1)
+            plt.imsave("val_true_pred.png", arr)
+            # print("image saved!")
+            
             dice_metric(y_pred=val_outputs, y=val_labels)
 
             # compute overall mean dice
