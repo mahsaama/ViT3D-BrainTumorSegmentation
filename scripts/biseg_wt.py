@@ -195,7 +195,7 @@ val_loader = DataLoader(val_ds, batch_size=batch_size, shuffle=False, num_worker
 
 model = SwinUNETR(
     img_size=tuple(roi_size),
-    in_channels=2,
+    in_channels=4,
     out_channels=1,
     feature_size=48,
     drop_rate=0.0,
