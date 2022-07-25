@@ -2,6 +2,7 @@ import os
 import torch
 from monai.data import DataLoader, Dataset
 from monai.losses.dice import DiceCELoss
+from monai.losses.contrastive import ContrastiveLoss
 from monai.metrics import DiceMetric
 from monai.networks.nets import SwinUNETR
 from monai.utils import set_determinism
@@ -212,7 +213,8 @@ model = SwinUNETR(
 # model.load_from(weights=weight)
 # print("Using pretrained self-supervied Swin UNETR backbone weights !")
 
-loss_function = DiceCELoss(to_onehot_y=False, sigmoid=True, ce_weight=weights)
+# loss_function = DiceCELoss(to_onehot_y=False, sigmoid=True, ce_weight=weights)
+loss_function = ContrastiveLoss()
 optimizer = torch.optim.AdamW(model.parameters(), lr=1e-4, weight_decay=1e-5)
 scheduler = LinearWarmupCosineAnnealingLR(
     optimizer, warmup_epochs=1, max_epochs=max_epochs
