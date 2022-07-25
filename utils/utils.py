@@ -37,8 +37,8 @@ class SupervisedContrastiveLoss(nn.Module):
         """
         device = torch.device("cuda") if projections.is_cuda else torch.device("cpu")
         print(projections.shape)
-        print(projections)
-        
+        print(projections.T.shape)
+
         print(torch.mm(projections, projections.T))
         dot_product_tempered = torch.mm(projections, projections.mT) / (
             self.temperature
