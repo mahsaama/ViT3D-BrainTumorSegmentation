@@ -7,28 +7,50 @@ from torch.optim.lr_scheduler import LambdaLR, _LRScheduler
 from torch import nn as nn
 from torch.optim import Optimizer
 from torch.optim.lr_scheduler import _LRScheduler
-import torch.nn.functional as F
-
+import torch
+import torch.nn as nn
 
 
 __all__ = ["LinearLR", "ExponentialLR"]
 
-class ContrastiveLoss(nn.Module):
-    """
-    Contrastive loss
-    Takes embeddings of two samples and a target label == 1 if samples are from the same class and label == 0 otherwise
-    """
 
-    def __init__(self, margin):
-        super(ContrastiveLoss, self).__init__()
-        self.margin = margin
-        self.eps = 1e-9
+from math import log
+class SupervisedContrastiveLoss(nn.Module):
+    def __init__(self, temperature=0.07):
+        """
+        Implementation of the loss described in the paper Supervised Contrastive Learning :
+        https://arxiv.org/abs/2004.11362
 
-    def forward(self, output1, output2, target, size_average=True):
-        distances = (output2 - output1).pow(2).sum(1)  # squared distances
-        losses = 0.5 * (target.float() * distances +
-                        (1 + -1 * target).float() * F.relu(self.margin - (distances + self.eps).sqrt()).pow(2))
-        return losses.mean() if size_average else losses.sum()
+        :param temperature: int
+        """
+        super(SupervisedContrastiveLoss, self).__init__()
+        self.temperature = temperature
+
+    def forward(self, projections, targets):
+        """
+
+        :param projections: torch.Tensor, shape [batch_size, projection_dim]
+        :param targets: torch.Tensor, shape [batch_size]
+        :return: torch.Tensor, scalar
+        """
+        device = torch.device("cuda") if projections.is_cuda else torch.device("cpu")
+
+        dot_product_tempered = torch.mm(projections, projections.T) / self.temperature
+        # Minus max for numerical stability with exponential. Same done in cross entropy. Epsilon added to avoid log(0)
+        exp_dot_tempered = (
+            torch.exp(dot_product_tempered - torch.max(dot_product_tempered, dim=1, keepdim=True)[0]) + 1e-5
+        )
+
+        mask_similar_class = (targets.unsqueeze(1).repeat(1, targets.shape[0]) == targets).to(device)
+        mask_anchor_out = (1 - torch.eye(exp_dot_tempered.shape[0])).to(device)
+        mask_combined = mask_similar_class * mask_anchor_out
+        cardinality_per_samples = torch.sum(mask_combined, dim=1)
+
+        log_prob = -torch.log(exp_dot_tempered / (torch.sum(exp_dot_tempered * mask_anchor_out, dim=1, keepdim=True)))
+        supervised_contrastive_loss_per_sample = torch.sum(log_prob * mask_combined, dim=1) / cardinality_per_samples
+        supervised_contrastive_loss = torch.mean(supervised_contrastive_loss_per_sample)
+
+        return supervised_contrastive_loss
     
 
 class BinaryLabel_WT(MapTransform):
