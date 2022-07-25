@@ -2,7 +2,6 @@ import os
 import torch
 from monai.data import DataLoader, Dataset
 from monai.losses.dice import DiceCELoss
-from monai.losses.contrastive import ContrastiveLoss
 from monai.metrics import DiceMetric
 from monai.networks.nets import SwinUNETR
 from monai.utils import set_determinism
@@ -27,6 +26,7 @@ from utils.utils import (
     ConvertToMultiChannelBasedOnBratsClassesd,
     sec_to_minute,
     LinearWarmupCosineAnnealingLR,
+    ContrastiveLoss,
 )
 import glob
 import argparse
@@ -67,7 +67,7 @@ batch_size = args.batch_size
 num_heads = args.num_heads
 embed_dim = args.embed_dim
 
-roi_size = [128, 128, 64] # TODO: change 64 to 128
+roi_size = [128, 128, 64]  # TODO: change 64 to 128
 pixdim = (1.5, 1.5, 2.0)
 
 best_metric = -1
