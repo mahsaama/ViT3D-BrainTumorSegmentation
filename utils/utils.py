@@ -14,7 +14,7 @@ __all__ = ["LinearLR", "ExponentialLR"]
 
 class SimCLR_Loss(nn.Module):
     def __init__(self, batch_size, temperature):
-        super(self).__init__()
+        super().__init__()
         self.batch_size = batch_size
         self.temperature = temperature
 
