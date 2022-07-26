@@ -38,7 +38,7 @@ class SimCLR_Loss(nn.Module):
         z = torch.cat((z_i, z_j), dim=0)
 
         sim = self.similarity_f(z.unsqueeze(1), z.unsqueeze(0)) / self.temperature
-        print(sim)
+        print(sim.size())
         sim_i_j = torch.diag(sim, self.batch_size)
         sim_j_i = torch.diag(sim, -self.batch_size)
 
