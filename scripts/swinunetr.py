@@ -26,7 +26,8 @@ from utils.utils import (
     ConvertToMultiChannelBasedOnBratsClassesd,
     sec_to_minute,
     LinearWarmupCosineAnnealingLR,
-    SupervisedContrastiveLoss,
+    # SupervisedContrastiveLoss,
+    SimCLR_Loss,
 )
 import glob
 import argparse
@@ -214,7 +215,8 @@ model = SwinUNETR(
 # print("Using pretrained self-supervied Swin UNETR backbone weights !")
 
 # loss_function = DiceCELoss(to_onehot_y=False, sigmoid=True, ce_weight=weights)
-loss_function = SupervisedContrastiveLoss()
+# loss_function = SupervisedContrastiveLoss()
+loss_function = SimCLR_Loss(batch_size, 0.5)
 optimizer = torch.optim.AdamW(model.parameters(), lr=1e-4, weight_decay=1e-5)
 scheduler = LinearWarmupCosineAnnealingLR(
     optimizer, warmup_epochs=1, max_epochs=max_epochs
