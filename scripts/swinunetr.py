@@ -239,10 +239,11 @@ for epoch in range(max_epochs):
             batch_data["images"].to(device),
             batch_data["label"].to(device),
         )
-        # print(inputs.size(), labels.size())
+        
         # print(torch.unique(labels))
         optimizer.zero_grad()
         outputs = model(inputs)
+        print(outputs.size(), labels.size())
 
         loss = loss_function(outputs, labels)
         loss.backward()
