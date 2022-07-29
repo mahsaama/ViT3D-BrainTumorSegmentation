@@ -243,7 +243,7 @@ for epoch in range(max_epochs):
         # print(torch.unique(labels))
         optimizer.zero_grad()
         outputs = model(inputs)
-        print(outputs.size(), labels.size())
+        # print(outputs.size(), labels.size())
 
         loss = loss_function(outputs, labels)
         loss.backward()
