@@ -27,14 +27,14 @@ from utils.utils import (
     sec_to_minute,
     LinearWarmupCosineAnnealingLR,
     # SupervisedContrastiveLoss,
-    SimCLR_Loss,
 )
 import glob
 import argparse
 import time
-import nibabel as nib
 import random
 import numpy as np
+import warnings
+warnings.filterwarnings("ignore")
 
 
 torch.manual_seed(10)
@@ -177,6 +177,13 @@ val_ds = Dataset(data=val_files, transform=val_transform)
 train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True, num_workers=2)
 val_loader = DataLoader(val_ds, batch_size=batch_size, shuffle=False, num_workers=2)
 
+for batch_data in train_loader:
+    inputs, labels = (
+        batch_data["images"].to(device),
+        batch_data["label"].to(device),
+    )
+    print(inputs.size(), labels.size())
+    break
 
 # model definition
 # model = UNETR(
@@ -214,7 +221,7 @@ model = SwinUNETR(
 # model.load_from(weights=weight)
 # print("Using pretrained self-supervied Swin UNETR backbone weights !")
 
-loss_function = DiceCELoss(to_onehot_y=False, sigmoid=True, ce_weight=weights)
+loss_function = DiceCELoss(to_onehot_y=True, sigmoid=True, ce_weight=weights)
 # loss_function = SupervisedContrastiveLoss()
 # loss_function = SimCLR_Loss(batch_size, 0.5)
 optimizer = torch.optim.AdamW(model.parameters(), lr=1e-4, weight_decay=1e-5)
