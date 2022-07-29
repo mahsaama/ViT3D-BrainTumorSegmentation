@@ -136,22 +136,22 @@ train_transform = Compose(
     [
         # load 4 Nifti images and stack them together
         LoadImaged(keys=["images", "label"]),
-        # AsChannelFirstd(keys="images", channel_dim=0),
-        # ConvertToMultiChannelBasedOnBratsClassesd(keys="label"),
-        # Spacingd(
-        #     keys=["images", "label"],
-        #     pixdim=pixdim,
-        #     mode=("bilinear", "nearest"),
-        # ),
-        # Orientationd(keys=["images", "label"], axcodes="RAS"),
-        # RandSpatialCropd(
-        #     keys=["images", "label"], roi_size=roi_size, random_size=False
-        # ),
-        # RandFlipd(keys=["images", "label"], prob=0.5, spatial_axis=0),
-        # NormalizeIntensityd(keys="images", nonzero=True, channel_wise=True),
-        # RandScaleIntensityd(keys="images", factors=0.1, prob=0.5),
-        # RandShiftIntensityd(keys="images", offsets=0.1, prob=0.5),
-        # ToTensord(keys=["images", "label"]),
+        AsChannelFirstd(keys="images", channel_dim=0),
+        ConvertToMultiChannelBasedOnBratsClassesd(keys="label"),
+        Spacingd(
+            keys=["images", "label"],
+            pixdim=pixdim,
+            mode=("bilinear", "nearest"),
+        ),
+        Orientationd(keys=["images", "label"], axcodes="RAS"),
+        RandSpatialCropd(
+            keys=["images", "label"], roi_size=roi_size, random_size=False
+        ),
+        RandFlipd(keys=["images", "label"], prob=0.5, spatial_axis=0),
+        NormalizeIntensityd(keys="images", nonzero=True, channel_wise=True),
+        RandScaleIntensityd(keys="images", factors=0.1, prob=0.5),
+        RandShiftIntensityd(keys="images", offsets=0.1, prob=0.5),
+        ToTensord(keys=["images", "label"]),
     ]
 )
 val_transform = Compose(
@@ -177,14 +177,6 @@ val_ds = Dataset(data=val_files, transform=val_transform)
 train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True, num_workers=2)
 val_loader = DataLoader(val_ds, batch_size=batch_size, shuffle=False, num_workers=2)
 
-for batch_data in train_loader:
-    inputs, labels = (
-        batch_data["images"].to(device),
-        batch_data["label"].to(device),
-    )
-    print(inputs.size(), labels.size())
-    print(torch.unique(labels))
-    break
 
 # model definition
 # model = UNETR(
