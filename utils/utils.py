@@ -322,11 +322,11 @@ class LinearWarmupCosineAnnealingLR(_LRScheduler):
 class ConvertToMultiChannelBasedOnBratsClassesd(MapTransform):
     """
     Convert labels to multi channels based on brats classes:
-    label 1 is the peritumoral edema
-    label 2 is the GD-enhancing tumor
-    label 3 is the necrotic and non-enhancing tumor core
-    The possible classes are TC (Tumor core), WT (Whole tumor)
-    and ET (Enhancing tumor).
+    label 1 is the peritumoral edema -> ED
+    label 2 is the GD-enhancing tumor -> ET
+    label 3 is the necrotic and non-enhancing tumor core -> NCR/NET
+    The possible classes are TC (Tumor core)(2+3), WT (Whole tumor)(1+2+3)
+    and ET (Enhancing tumor)(2).
 
     """
 
