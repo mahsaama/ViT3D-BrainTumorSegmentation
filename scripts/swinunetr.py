@@ -28,6 +28,7 @@ from utils.utils import (
     LinearWarmupCosineAnnealingLR,
     # SupervisedContrastiveLoss,
     mixup_data,
+    augment_rare_classes,
 )
 import glob
 import argparse
@@ -35,13 +36,12 @@ import time
 import random
 import numpy as np
 import warnings
-warnings.filterwarnings("ignore")
 
+warnings.filterwarnings("ignore")
 
 torch.manual_seed(10)
 random.seed(10)
 np.random.seed(10)
-
 
 parser = argparse.ArgumentParser(description="Transformer segmentation pipeline")
 parser.add_argument(
@@ -54,7 +54,6 @@ parser.add_argument(
 )
 parser.add_argument("--num_heads", default=12, type=int, help="Number of heads to use")
 parser.add_argument("--embed_dim", default=768, type=int, help="Embedding dimension")
-
 
 args = parser.parse_args()
 
@@ -69,7 +68,7 @@ batch_size = args.batch_size
 num_heads = args.num_heads
 embed_dim = args.embed_dim
 
-roi_size = [128, 128, 64]  # TODO: change 64 to 128
+roi_size = [128, 128, 128]  # TODO: change 64 to 128
 pixdim = (1.5, 1.5, 2.0)
 
 best_metric = -1
@@ -130,7 +129,7 @@ random.shuffle(data_dicts)
 
 val_files, train_files = (
     data_dicts[: int(n_data * frac)],
-    data_dicts[int(n_data * frac) :],
+    data_dicts[int(n_data * frac):],
 )
 
 train_transform = Compose(
@@ -177,7 +176,6 @@ val_ds = Dataset(data=val_files, transform=val_transform)
 
 train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True, num_workers=2)
 val_loader = DataLoader(val_ds, batch_size=batch_size, shuffle=False, num_workers=2)
-
 
 # model definition
 # model = UNETR(
@@ -240,19 +238,21 @@ for epoch in range(max_epochs):
             batch_data["images"].to(device),
             batch_data["label"].to(device),
         )
-        xs_mixup, ys_mixup_a, ys_mixup_b, lam = mixup_data(
-            x=inputs,
-            y=labels,
-            alpha=1)
+
+        # inputs, labels = augment_rare_classes(inputs, labels)
+        # xs_mixup, ys_mixup_a, ys_mixup_b, lam = mixup_data(
+        #     x=inputs,
+        #     y=labels,
+        #     alpha=1)
 
         # print(torch.unique(labels))
         optimizer.zero_grad()
         outputs = model(inputs)
         # print(outputs.size(), labels.size())
 
-        loss = lam * loss_function(outputs, ys_mixup_a) + (1 - lam) * loss_function(outputs, ys_mixup_b)
+        # loss = lam * loss_function(outputs, ys_mixup_a) + (1 - lam) * loss_function(outputs, ys_mixup_b)
 
-        # loss = loss_function(outputs, labels)
+        loss = loss_function(outputs, labels)
         loss.backward()
         optimizer.step()
         epoch_loss += loss.item()
@@ -335,14 +335,12 @@ for epoch in range(max_epochs):
             f"\tMean dice: {metric:.4f}\n"
             f"\tTC: {metric_tc:.4f} WT: {metric_wt:.4f} ET: {metric_et:.4f}\n"
             f"\tBest mean dice: {best_metric:.4f} at Epoch: {best_metric_epoch}\n"
-            f"\tTime: {sec_to_minute(time.time()-start)}"
+            f"\tTime: {sec_to_minute(time.time() - start)}"
         )
     scheduler.step()
 
-
 save_name = "./RESULTS/last.pth"
 torch.save(model.state_dict(), save_name)
-
 
 print(
     f"Train completed, best_metric: {best_metric:.4f}" f" at epoch: {best_metric_epoch}"

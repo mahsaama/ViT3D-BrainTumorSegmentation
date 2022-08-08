@@ -8,8 +8,46 @@ from torch import nn as nn
 from torch.optim import Optimizer
 import torch
 
-
 __all__ = ["LinearLR", "ExponentialLR"]
+
+
+def trim_zeros(arr):
+    """Returns a trimmed view of an n-D array excluding any outer
+    regions which contain only zeros.
+    """
+    slices = tuple(slice(idx.min(), idx.max() + 1) for idx in np.nonzero(arr))
+    return arr[slices]
+
+
+def augment_rare_classes(inputs, labels):
+    labels = labels.numpy()
+    inputs = inputs.numpy()
+
+    label_rare = np.copy(labels)
+    label_rare[label_rare == 2] = 0
+    imgs_rare = np.copy(inputs)
+
+    for img in imgs_rare:
+        for x in range(img.shape[0]):
+            for y in range(img.shape[1]):
+                for z in range(img.shape[2]):
+                    if label_rare[x, y, z] == 0:
+                        img[x, y, z] = 0
+
+    trimmed_label = trim_zeros(label_rare)
+    trimmed_images = [trim_zeros(img) for img in imgs_rare]
+    # print(trimmed_label.shape)
+    # for img in trimmed_images:
+    #   print(img.shape)
+    x, y, z = trimmed_label.shape
+    labels[:x, :y, :z] = trimmed_label
+    labels[:x, :y, labels.shape[2] - z:] = trimmed_label
+
+    for i in range(inputs.shape[0]):
+        inputs[i][:x, :y, :z] = trimmed_images[i]
+        inputs[i][:x, :y, inputs[i].shape[2] - z:] = trimmed_images[i]
+
+    return torch.from_numpy(inputs), torch.from_numpy(labels)
 
 
 def mixup_data(x, y, alpha=1.0):
@@ -147,7 +185,7 @@ class _LRSchedulerMONAI(_LRScheduler):
     of iterations"""
 
     def __init__(
-        self, optimizer: Optimizer, end_lr: float, num_iter: int, last_epoch: int = -1
+            self, optimizer: Optimizer, end_lr: float, num_iter: int, last_epoch: int = -1
     ) -> None:
         """
         Args:
@@ -189,12 +227,12 @@ class WarmupCosineSchedule(LambdaLR):
     """
 
     def __init__(
-        self,
-        optimizer: Optimizer,
-        warmup_steps: int,
-        t_total: int,
-        cycles: float = 0.5,
-        last_epoch: int = -1,
+            self,
+            optimizer: Optimizer,
+            warmup_steps: int,
+            t_total: int,
+            cycles: float = 0.5,
+            last_epoch: int = -1,
     ) -> None:
         """
         Args:
@@ -226,13 +264,13 @@ class WarmupCosineSchedule(LambdaLR):
 
 class LinearWarmupCosineAnnealingLR(_LRScheduler):
     def __init__(
-        self,
-        optimizer: Optimizer,
-        warmup_epochs: int,
-        max_epochs: int,
-        warmup_start_lr: float = 0.0,
-        eta_min: float = 0.0,
-        last_epoch: int = -1,
+            self,
+            optimizer: Optimizer,
+            warmup_epochs: int,
+            max_epochs: int,
+            warmup_start_lr: float = 0.0,
+            eta_min: float = 0.0,
+            last_epoch: int = -1,
     ) -> None:
         """
         Args:
@@ -272,7 +310,7 @@ class LinearWarmupCosineAnnealingLR(_LRScheduler):
         elif self.last_epoch == self.warmup_epochs:
             return self.base_lrs
         elif (self.last_epoch - 1 - self.max_epochs) % (
-            2 * (self.max_epochs - self.warmup_epochs)
+                2 * (self.max_epochs - self.warmup_epochs)
         ) == 0:
             return [
                 group["lr"]
@@ -284,20 +322,20 @@ class LinearWarmupCosineAnnealingLR(_LRScheduler):
 
         return [
             (
-                1
-                + math.cos(
-                    math.pi
-                    * (self.last_epoch - self.warmup_epochs)
-                    / (self.max_epochs - self.warmup_epochs)
-                )
+                    1
+                    + math.cos(
+                math.pi
+                * (self.last_epoch - self.warmup_epochs)
+                / (self.max_epochs - self.warmup_epochs)
+            )
             )
             / (
-                1
-                + math.cos(
-                    math.pi
-                    * (self.last_epoch - self.warmup_epochs - 1)
-                    / (self.max_epochs - self.warmup_epochs)
-                )
+                    1
+                    + math.cos(
+                math.pi
+                * (self.last_epoch - self.warmup_epochs - 1)
+                / (self.max_epochs - self.warmup_epochs)
+            )
             )
             * (group["lr"] - self.eta_min)
             + self.eta_min
@@ -322,12 +360,12 @@ class LinearWarmupCosineAnnealingLR(_LRScheduler):
             + 0.5
             * (base_lr - self.eta_min)
             * (
-                1
-                + math.cos(
-                    math.pi
-                    * (self.last_epoch - self.warmup_epochs)
-                    / (self.max_epochs - self.warmup_epochs)
-                )
+                    1
+                    + math.cos(
+                math.pi
+                * (self.last_epoch - self.warmup_epochs)
+                / (self.max_epochs - self.warmup_epochs)
+            )
             )
             for base_lr in self.base_lrs
         ]
