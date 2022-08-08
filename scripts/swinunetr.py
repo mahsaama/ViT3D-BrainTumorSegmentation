@@ -144,9 +144,9 @@ train_transform = Compose(
             mode=("bilinear", "nearest"),
         ),
         Orientationd(keys=["images", "label"], axcodes="RAS"),
-        RandSpatialCropd(
-            keys=["images", "label"], roi_size=roi_size, random_size=False
-        ),
+        # RandSpatialCropd(
+        #     keys=["images", "label"], roi_size=roi_size, random_size=False
+        # ),
         RandFlipd(keys=["images", "label"], prob=0.5, spatial_axis=0),
         NormalizeIntensityd(keys="images", nonzero=True, channel_wise=True),
         RandScaleIntensityd(keys="images", factors=0.1, prob=0.5),
@@ -165,7 +165,7 @@ val_transform = Compose(
             mode=("bilinear", "nearest"),
         ),
         Orientationd(keys=["images", "label"], axcodes="RAS"),
-        CenterSpatialCropd(keys=["images", "label"], roi_size=roi_size),
+        # CenterSpatialCropd(keys=["images", "label"], roi_size=roi_size),
         NormalizeIntensityd(keys="images", nonzero=True, channel_wise=True),
         ToTensord(keys=["images", "label"]),
     ]
@@ -199,7 +199,8 @@ weights = torch.tensor(
 )
 
 model = SwinUNETR(
-    img_size=tuple(roi_size),
+    # img_size=tuple(roi_size),
+    img_size=(240, 240, 155),
     in_channels=4,
     out_channels=3,
     feature_size=48,
