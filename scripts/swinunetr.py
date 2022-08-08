@@ -238,6 +238,8 @@ for epoch in range(max_epochs):
             batch_data["images"].to(device),
             batch_data["label"].to(device),
         )
+        print(inputs.size())
+        print(labels.size())
 
         # inputs, labels = augment_rare_classes(inputs, labels)
         # xs_mixup, ys_mixup_a, ys_mixup_b, lam = mixup_data(
