@@ -27,6 +27,7 @@ from utils.utils import (
     sec_to_minute,
     LinearWarmupCosineAnnealingLR,
     # SupervisedContrastiveLoss,
+    mixup_data,
 )
 import glob
 import argparse
@@ -239,13 +240,19 @@ for epoch in range(max_epochs):
             batch_data["images"].to(device),
             batch_data["label"].to(device),
         )
-        
+        xs_mixup, ys_mixup_a, ys_mixup_b, lam = mixup_data(
+            x=inputs,
+            y=labels,
+            alpha=1)
+
         # print(torch.unique(labels))
         optimizer.zero_grad()
         outputs = model(inputs)
         # print(outputs.size(), labels.size())
 
-        loss = loss_function(outputs, labels)
+        loss = lam * loss_function(outputs, ys_mixup_a) + (1 - lam) * loss_function(outputs, ys_mixup_b)
+
+        # loss = loss_function(outputs, labels)
         loss.backward()
         optimizer.step()
         epoch_loss += loss.item()
