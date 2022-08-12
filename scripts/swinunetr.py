@@ -81,24 +81,19 @@ metric_values_wt = []
 metric_values_et = []
 
 if ds == "2020":
-    # data_dir = "../Dataset_BRATS_2020/Training/"
-    # t1_list = sorted(glob.glob(data_dir + "*/*t1.nii.gz"))
-    # t2_list = sorted(glob.glob(data_dir + "*/*t2.nii.gz"))
-    # t1ce_list = sorted(glob.glob(data_dir + "*/*t1ce.nii.gz"))
-    # flair_list = sorted(glob.glob(data_dir + "*/*flair.nii.gz"))
-    # seg_list = sorted(glob.glob(data_dir + "*/*seg.nii.gz"))
-
-    data_dir = "../Dataset_BRATS_2020/Augmented/"
+    data_dir = "../Dataset_BRATS_2020/Training/"
     t1_list = sorted(glob.glob(data_dir + "*/*t1.nii.gz"))
     t2_list = sorted(glob.glob(data_dir + "*/*t2.nii.gz"))
     t1ce_list = sorted(glob.glob(data_dir + "*/*t1ce.nii.gz"))
     flair_list = sorted(glob.glob(data_dir + "*/*flair.nii.gz"))
     seg_list = sorted(glob.glob(data_dir + "*/*seg.nii.gz"))
-    # t1_list = t1_list[:270] + t1_list[271:278] + t1_list[279:339] + t1_list[340:347] + t1_list[348:]
-    # t2_list = t2_list[:270] + t2_list[271:278] + t2_list[279:339] + t2_list[340:347] + t2_list[348:]
-    # t1ce_list = t1ce_list[:270] + t1ce_list[271:278] + t1ce_list[279:339] + t1ce_list[340:347] + t1ce_list[348:]
-    # flair_list = flair_list[:270] + flair_list[271:278] + flair_list[279:339] + flair_list[340:347] + flair_list[348:]
-    # seg_list = seg_list[:270] + seg_list[271:278] + seg_list[279:339] + seg_list[340:347] + seg_list[348:]
+
+    data_dir = "../Dataset_BRATS_2020/Augmented/"
+    t1_list += sorted(glob.glob(data_dir + "*/*t1.nii.gz"))
+    t2_list += sorted(glob.glob(data_dir + "*/*t2.nii.gz"))
+    t1ce_list += sorted(glob.glob(data_dir + "*/*t1ce.nii.gz"))
+    flair_list += sorted(glob.glob(data_dir + "*/*flair.nii.gz"))
+    seg_list += sorted(glob.glob(data_dir + "*/*seg.nii.gz"))
 
 elif ds == "2021":
     data_dir = "../Dataset_BRATS_2021/"
