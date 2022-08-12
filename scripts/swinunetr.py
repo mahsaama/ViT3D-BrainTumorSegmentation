@@ -247,6 +247,7 @@ for epoch in range(max_epochs):
             batch_data["images"].to(device),
             batch_data["label"].to(device),
         )
+        print(step)
         # print(inputs.size())
         # print(labels.size())
 
