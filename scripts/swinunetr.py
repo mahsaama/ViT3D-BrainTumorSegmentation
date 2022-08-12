@@ -89,11 +89,11 @@ if ds == "2020":
     # seg_list = sorted(glob.glob(data_dir + "*/*seg.nii.gz"))
 
     data_dir = "../Dataset_BRATS_2020/Augmented/"
-    t1_list = sorted(glob.glob(data_dir + "*/*t1.nii.gz"))[279:]
-    t2_list = sorted(glob.glob(data_dir + "*/*t2.nii.gz"))[279:]
-    t1ce_list = sorted(glob.glob(data_dir + "*/*t1ce.nii.gz"))[279:]
-    flair_list = sorted(glob.glob(data_dir + "*/*flair.nii.gz"))[279:]
-    seg_list = sorted(glob.glob(data_dir + "*/*seg.nii.gz"))[279:]
+    t1_list = sorted(glob.glob(data_dir + "*/*t1.nii.gz"))[340:]
+    t2_list = sorted(glob.glob(data_dir + "*/*t2.nii.gz"))[340:]
+    t1ce_list = sorted(glob.glob(data_dir + "*/*t1ce.nii.gz"))[340:]
+    flair_list = sorted(glob.glob(data_dir + "*/*flair.nii.gz"))[340:]
+    seg_list = sorted(glob.glob(data_dir + "*/*seg.nii.gz"))[340:]
 
 elif ds == "2021":
     data_dir = "../Dataset_BRATS_2021/"
