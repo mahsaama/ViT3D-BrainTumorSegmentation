@@ -296,7 +296,11 @@ for epoch in range(max_epochs):
                 val_data["images"].to(device),
                 val_data["label"].to(device),
             )
-            val_outputs = model(val_inputs)
+            try:
+                val_outputs = model(val_inputs)
+            except Exception as e:
+                print(e)
+                continue
             val_outputs = post_trans(val_outputs)
             dice_metric(y_pred=val_outputs, y=val_labels)
 
