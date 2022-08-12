@@ -89,11 +89,11 @@ if ds == "2020":
     # seg_list = sorted(glob.glob(data_dir + "*/*seg.nii.gz"))
 
     data_dir = "../Dataset_BRATS_2020/Augmented/"
-    t1_list = sorted(glob.glob(data_dir + "*/*t1.nii.gz"))
-    t2_list = sorted(glob.glob(data_dir + "*/*t2.nii.gz"))
-    t1ce_list = sorted(glob.glob(data_dir + "*/*t1ce.nii.gz"))
-    flair_list = sorted(glob.glob(data_dir + "*/*flair.nii.gz"))
-    seg_list = sorted(glob.glob(data_dir + "*/*seg.nii.gz"))
+    t1_list = sorted(glob.glob(data_dir + "*/*t1.nii.gz"))[:10]
+    t2_list = sorted(glob.glob(data_dir + "*/*t2.nii.gz"))[:10]
+    t1ce_list = sorted(glob.glob(data_dir + "*/*t1ce.nii.gz"))[:10]
+    flair_list = sorted(glob.glob(data_dir + "*/*flair.nii.gz"))[:10]
+    seg_list = sorted(glob.glob(data_dir + "*/*seg.nii.gz"))[:10]
 
 elif ds == "2021":
     data_dir = "../Dataset_BRATS_2021/"
@@ -218,9 +218,9 @@ model = SwinUNETR(
     use_checkpoint=False,
 ).to(device)
 
-weight = torch.load("./model_swinvit.pt")
-model.load_from(weights=weight)
-print("Using pretrained self-supervied Swin UNETR backbone weights !")
+# weight = torch.load("./model_swinvit.pt")
+# model.load_from(weights=weight)
+# print("Using pretrained self-supervied Swin UNETR backbone weights !")
 
 loss_function = DiceCELoss(to_onehot_y=False, sigmoid=True, ce_weight=weights)
 # loss_function = SupervisedContrastiveLoss()
@@ -247,8 +247,8 @@ for epoch in range(max_epochs):
             batch_data["images"].to(device),
             batch_data["label"].to(device),
         )
-        # print(inputs.size())
-        # print(labels.size())
+        print(inputs.size())
+        print(labels.size())
 
         # inputs, labels = augment_rare_classes(inputs, labels)
         # xs_mixup, ys_mixup_a, ys_mixup_b, lam = mixup_data(
