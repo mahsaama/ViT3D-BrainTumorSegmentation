@@ -94,11 +94,11 @@ if ds == "2020":
     t1ce_list = sorted(glob.glob(data_dir + "*/*t1ce.nii.gz"))
     flair_list = sorted(glob.glob(data_dir + "*/*flair.nii.gz"))
     seg_list = sorted(glob.glob(data_dir + "*/*seg.nii.gz"))
-    t1_list = t1_list[:270] + t1_list[271:278] + t1_list[279:339] + t1_list[340:347] + t1_list[348:]
-    t2_list = t2_list[:270] + t2_list[271:278] + t2_list[279:339] + t2_list[340:347] + t2_list[348:]
-    t1ce_list = t1ce_list[:270] + t1ce_list[271:278] + t1ce_list[279:339] + t1ce_list[340:347] + t1ce_list[348:]
-    flair_list = flair_list[:270] + flair_list[271:278] + flair_list[279:339] + flair_list[340:347] + flair_list[348:]
-    seg_list = seg_list[:270] + seg_list[271:278] + seg_list[279:339] + seg_list[340:347] + seg_list[348:]
+    # t1_list = t1_list[:270] + t1_list[271:278] + t1_list[279:339] + t1_list[340:347] + t1_list[348:]
+    # t2_list = t2_list[:270] + t2_list[271:278] + t2_list[279:339] + t2_list[340:347] + t2_list[348:]
+    # t1ce_list = t1ce_list[:270] + t1ce_list[271:278] + t1ce_list[279:339] + t1ce_list[340:347] + t1ce_list[348:]
+    # flair_list = flair_list[:270] + flair_list[271:278] + flair_list[279:339] + flair_list[340:347] + flair_list[348:]
+    # seg_list = seg_list[:270] + seg_list[271:278] + seg_list[279:339] + seg_list[340:347] + seg_list[348:]
 
 elif ds == "2021":
     data_dir = "../Dataset_BRATS_2021/"
@@ -252,7 +252,7 @@ for epoch in range(max_epochs):
             batch_data["images"].to(device),
             batch_data["label"].to(device),
         )
-        print(step)
+        # print(step)
         # print(inputs.size())
         # print(labels.size())
 
@@ -264,7 +264,11 @@ for epoch in range(max_epochs):
 
         # print(torch.unique(labels))
         optimizer.zero_grad()
-        outputs = model(inputs)
+        try:
+            outputs = model(inputs)
+        except Exception as e:
+            print(step)
+            continue
         # print(outputs.size(), labels.size())
 
         # loss = lam * loss_function(outputs, ys_mixup_a) + (1 - lam) * loss_function(outputs, ys_mixup_b)
