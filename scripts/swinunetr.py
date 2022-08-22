@@ -219,14 +219,16 @@ model = SwinUNETR(
 ).to(device)
 
 for name, param in model.named_parameters():
-    print(name)
+    if name == "decoder5.conv_block.conv1.conv.weight":
+        print(param)
 
 weight = torch.load("./model_swinvit.pt")
 model.load_from(weights=weight)
 print("Using pretrained self-supervied Swin UNETR backbone weights !")
 
 for name, param in model.named_parameters():
-    print(name)
+    if name == "decoder5.conv_block.conv1.conv.weight":
+        print(param)
 
 loss_function = DiceCELoss(to_onehot_y=False, sigmoid=True, ce_weight=weights)
 # loss_function = SupervisedContrastiveLoss()
