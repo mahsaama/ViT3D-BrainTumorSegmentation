@@ -224,7 +224,7 @@ model = SwinUNETR(
 
 # weight = torch.load("./model_swinvit.pt")
 # model.load_from(weights=weight)
-# print("Using pretrained self-supervied Swin UNETR backbone weights !")
+# print("Using pretrained self-supervied Swin UNETR backbone weights!")
 
 
 loss_function = DiceCELoss(to_onehot_y=False, sigmoid=True, ce_weight=weights)
