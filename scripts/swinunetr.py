@@ -187,19 +187,19 @@ train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True, num_wor
 val_loader = DataLoader(val_ds, batch_size=batch_size, shuffle=False, num_workers=2)
 
 # model definition
-model = UNETR(
-    in_channels=4,
-    out_channels=3,
-    img_size=tuple(roi_size),
-    feature_size=48,
-    hidden_size=embed_dim,
-    mlp_dim=3072,
-    num_heads=num_heads,
-    pos_embed="perceptron",
-    norm_name="instance",
-    res_block=True,
-    dropout_rate=0.0,
-).to(device)
+# model = UNETR(
+#     in_channels=4,
+#     out_channels=3,
+#     img_size=tuple(roi_size),
+#     feature_size=48,
+#     hidden_size=embed_dim,
+#     mlp_dim=3072,
+#     num_heads=num_heads,
+#     pos_embed="perceptron",
+#     norm_name="instance",
+#     res_block=True,
+#     dropout_rate=0.0,
+# ).to(device)
 
 # class weights
 class_weights = np.array([45.465614, 16.543337, 49.11155], dtype="f")
@@ -207,20 +207,26 @@ weights = torch.tensor(
     class_weights, dtype=torch.float32, device=torch.device("cuda:0")
 )
 
-# model = SwinUNETR(
-#     img_size=tuple(roi_size),
-#     in_channels=4,
-#     out_channels=3,
-#     feature_size=48,
-#     drop_rate=0.0,
-#     attn_drop_rate=0.0,
-#     dropout_path_rate=0.0,
-#     use_checkpoint=False,
-# ).to(device)
+model = SwinUNETR(
+    img_size=tuple(roi_size),
+    in_channels=4,
+    out_channels=3,
+    feature_size=48,
+    drop_rate=0.0,
+    attn_drop_rate=0.0,
+    dropout_path_rate=0.0,
+    use_checkpoint=False,
+).to(device)
 
-# weight = torch.load("./model_swinvit.pt")
-# model.load_from(weights=weight)
-# print("Using pretrained self-supervied Swin UNETR backbone weights !")
+for name, param in model.named_parameters():
+    print(name, param)
+
+weight = torch.load("./model_swinvit.pt")
+model.load_from(weights=weight)
+print("Using pretrained self-supervied Swin UNETR backbone weights !")
+
+for name, param in model.named_parameters():
+    print(name, param)
 
 loss_function = DiceCELoss(to_onehot_y=False, sigmoid=True, ce_weight=weights)
 # loss_function = SupervisedContrastiveLoss()

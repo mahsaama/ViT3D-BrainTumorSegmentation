@@ -67,7 +67,7 @@ Run
 
 For training **UNETR** model from scratch use this:
 ```bash
-python scripts/main.py
+python scripts/unetr.py
 --feature_size=32
 --batch_size=1
 --logdir=unetr_test
@@ -81,7 +81,7 @@ python scripts/main.py
 
 For fine-tunning **UNETR** model use this:
 ```bash
-python scripts/main.py
+python scripts/unetr.py
 --batch_size=1
 --logdir=unetr_pretrained
 --fold=0
