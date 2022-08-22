@@ -218,17 +218,14 @@ model = SwinUNETR(
     use_checkpoint=False,
 ).to(device)
 
-for name, param in model.named_parameters():
-    print(param.size())
-    break
+# for name, param in model.named_parameters():
+#     print(param.size())
+#     break
 
 weight = torch.load("./model_swinvit.pt")
 model.load_from(weights=weight)
 print("Using pretrained self-supervied Swin UNETR backbone weights !")
 
-for name, param in model.named_parameters():
-    print(param.size())
-    break
 
 loss_function = DiceCELoss(to_onehot_y=False, sigmoid=True, ce_weight=weights)
 # loss_function = SupervisedContrastiveLoss()
