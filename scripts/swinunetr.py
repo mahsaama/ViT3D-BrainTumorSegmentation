@@ -223,8 +223,9 @@ model.load_from(weights=weight)
 print("Using pretrained self-supervied Swin UNETR backbone weights!")
 
 for name, param in model.named_parameters():
-    if "swinViT" in name:
-        param.requires_grad = False
+    print(name, ": ", param.requires_grad)
+    # if "swinViT" in name:
+    #     param.requires_grad = False
 
 loss_function = DiceCELoss(to_onehot_y=False, sigmoid=True, ce_weight=weights)
 # loss_function = SupervisedContrastiveLoss()
