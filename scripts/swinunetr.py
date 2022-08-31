@@ -226,13 +226,11 @@ for name, param in model.named_parameters():
     if "swinViT" in name and "layers" in name:
         param.requires_grad = False
 
-for name, param in model.named_parameters():
-    print(name, ": ", param.requires_grad)
-
 loss_function = DiceCELoss(to_onehot_y=False, sigmoid=True, ce_weight=weights)
 # loss_function = SupervisedContrastiveLoss()
 # loss_function = SimCLR_Loss(batch_size, 0.5)
-optimizer = torch.optim.AdamW(model.parameters(), lr=1e-4, weight_decay=1e-5)
+# optimizer = torch.optim.AdamW(model.parameters(), lr=1e-4, weight_decay=1e-5)
+optimizer = torch.optim.AdamW(filter(lambda p: p.requires_grad, model.parameters()), lr=1e-4, weight_decay=1e-5)
 scheduler = LinearWarmupCosineAnnealingLR(
     optimizer, warmup_epochs=1, max_epochs=max_epochs
 )
