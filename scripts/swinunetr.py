@@ -69,7 +69,7 @@ batch_size = args.batch_size
 num_heads = args.num_heads
 embed_dim = args.embed_dim
 
-roi_size = [32, 32, 16]  # TODO: change 64 to 128
+roi_size = [32, 32, 32]  # TODO: change 64 to 128
 pixdim = (1.5, 1.5, 2.0)
 
 best_metric = -1
@@ -217,7 +217,6 @@ model = SwinUNETR(
     attn_drop_rate=0.0,
     dropout_path_rate=0.0,
     use_checkpoint=False,
-    spatial_dims=2, # new
 ).to(device)
 
 # weight = torch.load("./model_swinvit.pt")
