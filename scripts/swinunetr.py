@@ -69,7 +69,7 @@ batch_size = args.batch_size
 num_heads = args.num_heads
 embed_dim = args.embed_dim
 
-roi_size = [32, 32, 32]  # TODO: change 64 to 128
+roi_size = [128, 128, 64]  # TODO: change 64 to 128
 pixdim = (1.5, 1.5, 2.0)
 
 best_metric = -1
@@ -212,7 +212,7 @@ model = SwinUNETR(
     img_size=tuple(roi_size),
     in_channels=4,
     out_channels=3,
-    feature_size=24,
+    feature_size=48,
     drop_rate=0.0,
     attn_drop_rate=0.0,
     dropout_path_rate=0.0,
@@ -265,12 +265,12 @@ for epoch in range(max_epochs):
 
         # print(torch.unique(labels))
         optimizer.zero_grad()
-        # try:
-        outputs = model(inputs)
-        # except Exception as e:
-        #     print(step)
-        #     print(e)
-        #     continue
+        try:
+            outputs = model(inputs)
+        except Exception as e:
+            print(step)
+            print(e)
+            continue
         # print(outputs.size(), labels.size())
 
         # loss = lam * loss_function(outputs, ys_mixup_a) + (1 - lam) * loss_function(outputs, ys_mixup_b)
