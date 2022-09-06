@@ -26,8 +26,8 @@ from utils.utils import (
     ConvertToMultiChannelBasedOnBratsClassesd,
     sec_to_minute,
     LinearWarmupCosineAnnealingLR,
-    SimCLR_Loss,
-    # SupervisedContrastiveLoss,
+    # SimCLR_Loss,
+    SupervisedContrastiveLoss,
     mixup_data,
     augment_rare_classes,
 )
@@ -228,8 +228,8 @@ print("Using pretrained self-supervied Swin UNETR backbone weights!")
 #         param.requires_grad = False
 
 loss_function = DiceCELoss(to_onehot_y=False, sigmoid=True, ce_weight=weights)
-# loss_function = SupervisedContrastiveLoss()
-loss_function = SimCLR_Loss(batch_size, 0.5)
+loss_function = SupervisedContrastiveLoss()
+# loss_function = SimCLR_Loss(batch_size, 0.5)
 optimizer = torch.optim.AdamW(model.parameters(), lr=1e-4, weight_decay=1e-5)
 # optimizer = torch.optim.AdamW(filter(lambda p: p.requires_grad, model.parameters()), lr=1e-4, weight_decay=1e-5)
 scheduler = LinearWarmupCosineAnnealingLR(
