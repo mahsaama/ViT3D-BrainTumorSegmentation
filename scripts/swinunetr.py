@@ -69,7 +69,7 @@ batch_size = args.batch_size
 num_heads = args.num_heads
 embed_dim = args.embed_dim
 
-roi_size = [64, 64, 32]  # TODO: change 64 to 128
+roi_size = [60, 60, 28]  # TODO: change 64 to 128
 pixdim = (1.5, 1.5, 2.0)
 
 best_metric = -1
