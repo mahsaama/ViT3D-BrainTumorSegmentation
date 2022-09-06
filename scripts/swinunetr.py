@@ -219,9 +219,9 @@ model = SwinUNETR(
     use_checkpoint=False,
 ).to(device)
 
-weight = torch.load("./model_swinvit.pt")
-model.load_from(weights=weight)
-print("Using pretrained self-supervied Swin UNETR backbone weights!")
+# weight = torch.load("./model_swinvit.pt")
+# model.load_from(weights=weight)
+# print("Using pretrained self-supervied Swin UNETR backbone weights!")
 
 # for name, param in model.named_parameters():
 #     if "swinViT" in name and "layers" in name:
