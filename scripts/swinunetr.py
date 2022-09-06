@@ -217,6 +217,7 @@ model = SwinUNETR(
     attn_drop_rate=0.0,
     dropout_path_rate=0.0,
     use_checkpoint=False,
+    spatial_dims=2, # new
 ).to(device)
 
 # weight = torch.load("./model_swinvit.pt")
