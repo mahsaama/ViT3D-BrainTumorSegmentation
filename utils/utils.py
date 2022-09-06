@@ -10,7 +10,6 @@ import torch
 
 __all__ = ["LinearLR", "ExponentialLR"]
 
-
 def trim_zeros(arr):
     """Returns a trimmed view of an n-D array excluding any outer
     regions which contain only zeros.
