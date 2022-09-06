@@ -265,12 +265,12 @@ for epoch in range(max_epochs):
 
         # print(torch.unique(labels))
         optimizer.zero_grad()
-        try:
-            outputs = model(inputs)
-        except Exception as e:
-            print(step)
-            print(e)
-            continue
+        # try:
+        outputs = model(inputs)
+        # except Exception as e:
+        #     print(step)
+        #     print(e)
+        #     continue
         # print(outputs.size(), labels.size())
 
         # loss = lam * loss_function(outputs, ys_mixup_a) + (1 - lam) * loss_function(outputs, ys_mixup_b)
