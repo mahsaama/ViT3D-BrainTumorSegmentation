@@ -77,6 +77,7 @@ best_metric_epoch = -1
 
 epoch_loss_values = []
 metric_values = []
+metric_values_bg = []
 metric_values_tc = []
 metric_values_wt = []
 metric_values_et = []
@@ -203,7 +204,7 @@ val_loader = DataLoader(val_ds, batch_size=batch_size, shuffle=False, num_worker
 # ).to(device)
 
 # class weights
-class_weights = np.array([45.465614, 16.543337, 49.11155], dtype="f")
+class_weights = np.array([1, 45.465614, 16.543337, 49.11155], dtype="f")
 weights = torch.tensor(
     class_weights, dtype=torch.float32, device=torch.device("cuda:0")
 )
@@ -211,7 +212,7 @@ weights = torch.tensor(
 model = SwinUNETR(
     img_size=tuple(roi_size),
     in_channels=4,
-    out_channels=3,
+    out_channels=4,
     feature_size=48,
     drop_rate=0.0,
     attn_drop_rate=0.0,
@@ -288,7 +289,7 @@ for epoch in range(max_epochs):
     model.eval()
     with torch.no_grad():
         dice_metric = DiceMetric(
-            include_background=True, reduction="mean", get_not_nans=True
+            include_background=False, reduction="mean", get_not_nans=True # true
         )
         post_trans = Compose(
             [
@@ -296,8 +297,8 @@ for epoch in range(max_epochs):
                 AsDiscrete(threshold=0.6),
             ]
         )
-        metric_sum = metric_sum_tc = metric_sum_wt = metric_sum_et = 0.0
-        metric_count = metric_count_tc = metric_count_wt = metric_count_et = 0
+        metric_sum = metric_sum_bg = metric_sum_tc = metric_sum_wt = metric_sum_et = 0.0
+        metric_count = metric_count_bg = metric_count_tc = metric_count_wt = metric_count_et = 0
         for val_data in val_loader:
             val_inputs, val_labels = (
                 val_data["images"].to(device),
@@ -318,8 +319,16 @@ for epoch in range(max_epochs):
             metric_count += not_nans
             metric_sum += value.mean().item() * not_nans
 
-            # compute mean dice for TC
+            # compute mean dice for background
             dice_metric(y_pred=val_outputs[:, 0:1], y=val_labels[:, 0:1])
+            value_bg, not_nans = dice_metric.aggregate()
+            dice_metric.reset()
+            not_nans = not_nans.item()
+            metric_count_bg += not_nans
+            metric_sum_bg += value_bg.item() * not_nans
+
+            # compute mean dice for TC
+            dice_metric(y_pred=val_outputs[:, 1:2], y=val_labels[:, 1:2])
             value_tc, not_nans = dice_metric.aggregate()
             dice_metric.reset()
             not_nans = not_nans.item()
@@ -327,7 +336,7 @@ for epoch in range(max_epochs):
             metric_sum_tc += value_tc.item() * not_nans
 
             # compute mean dice for WT
-            dice_metric(y_pred=val_outputs[:, 1:2], y=val_labels[:, 1:2])
+            dice_metric(y_pred=val_outputs[:, 2:3], y=val_labels[:, 2:3])
             value_wt, not_nans = dice_metric.aggregate()
             dice_metric.reset()
             not_nans = not_nans.item()
@@ -335,7 +344,7 @@ for epoch in range(max_epochs):
             metric_sum_wt += value_wt.item() * not_nans
 
             # compute mean dice for ET
-            dice_metric(y_pred=val_outputs[:, 2:3], y=val_labels[:, 2:3])
+            dice_metric(y_pred=val_outputs[:, 3:4], y=val_labels[:, 3:4])
             value_et, not_nans = dice_metric.aggregate()
             dice_metric.reset()
             not_nans = not_nans.item()
@@ -344,6 +353,8 @@ for epoch in range(max_epochs):
 
         metric = metric_sum / metric_count
         metric_values.append(metric)
+        metric_bg = metric_sum_bg / metric_count_bg
+        metric_values_bg.append(metric_bg)
         metric_tc = metric_sum_tc / metric_count_tc
         metric_values_tc.append(metric_tc)
         metric_wt = metric_sum_wt / metric_count_wt
@@ -360,7 +371,7 @@ for epoch in range(max_epochs):
             print("\tsaved new best metric model")
         print(
             f"\tMean dice: {metric:.4f}\n"
-            f"\tTC: {metric_tc:.4f} WT: {metric_wt:.4f} ET: {metric_et:.4f}\n"
+            f"\tBG: {metric_bg:.4f} TC: {metric_tc:.4f} WT: {metric_wt:.4f} ET: {metric_et:.4f}\n"
             f"\tBest mean dice: {best_metric:.4f} at Epoch: {best_metric_epoch}\n"
             f"\tTime: {sec_to_minute(time.time() - start)}"
         )
