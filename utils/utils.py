@@ -385,6 +385,8 @@ class ConvertToMultiChannelBasedOnBratsClassesd(MapTransform):
         d = dict(data)
         for key in self.keys:
             result = []
+            # merge label 0 to construct BG
+            result.append(d[key] == 0)
             # merge label 2 and label 4 to construct TC
             result.append(np.logical_or(d[key] == 2, d[key] == 4))
             # merge labels 1, 2 and 4 to construct WT
