@@ -132,24 +132,15 @@ data_dicts = [
 
 random.shuffle(data_dicts)
 
-num_0 = 0
-num_1 = 0
-num_2 = 0
-num_4 = 0
+w = [0, 0, 0, 0, 0]
 
 for p in seg_list:
     image = sitk.ReadImage(p)
     arr = sitk.GetArrayViewFromImage(image)
     values, counts = np.unique(arr, return_counts=True)
-    num_0 += counts[0]
-    num_1 += counts[1]
-    num_2 += counts[2]
-    num_4 += counts[3]
-
-print(num_0)
-print(num_1)
-print(num_2)
-print(num_4)
+    for i in range(len(values)):
+        w[values[i]] += counts[i]
+print(w)
 
 # for p in data_dicts[0]["label"]:
 # #     x = nib.load(p).get_fdata(dtype="float32", caching="unchanged")
