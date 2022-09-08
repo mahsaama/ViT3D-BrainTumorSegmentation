@@ -418,3 +418,28 @@ def sec_to_minute(sec):
     hours = int((sec / (60 * 60)) % 24)
 
     return "{:02d}:{:02d}:{:02d}".format(hours, minutes, seconds)
+
+
+class TestConvertToMultiChannelBasedOnBratsClassesd(MapTransform):
+    """
+    Convert labels to multi channels based on brats classes:
+    label 1 is the peritumoral edema -> ED
+    label 2 is the GD-enhancing tumor -> ET
+    label 3 is the necrotic and non-enhancing tumor core -> NCR/NET
+    The possible classes are TC (Tumor core)(2+3), WT (Whole tumor)(1+2+3)
+    and ET (Enhancing tumor)(2).
+
+    """
+
+    def __call__(self, data):
+        d = dict(data)
+        for key in self.keys:
+            result = []
+            # label 1 -> ED
+            result.append(d[key] == 1)
+            # label 2 -> NCR/NET
+            result.append(d[key] == 2)
+            # label 4 -> ET
+            result.append(d[key] == 4)
+            d[key] = np.stack(result, axis=0).astype(np.float32)
+        return d
