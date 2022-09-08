@@ -59,7 +59,7 @@ parser.add_argument("--embed_dim", default=768, type=int, help="Embedding dimens
 
 args = parser.parse_args()
 
-root_dir = "../test/"
+root_dir = "./"
 set_determinism(seed=0)
 device = torch.device("cuda:0")
 
@@ -249,7 +249,7 @@ scheduler = LinearWarmupCosineAnnealingLR(
 )
 torch.cuda.empty_cache()
 
-results_path = os.path.join("../test", "RESULTS")
+results_path = os.path.join(".", "RESULTS")
 if os.path.exists(results_path) == False:
     os.mkdir(results_path)
 
