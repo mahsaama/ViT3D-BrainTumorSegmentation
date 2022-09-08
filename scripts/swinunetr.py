@@ -135,7 +135,9 @@ random.shuffle(data_dicts)
 for p in seg_list:
     image = sitk.ReadImage(p)
     arr = sitk.GetArrayViewFromImage(image)
-    print(type(arr))
+    values, counts = np.unique(arr, return_counts=True)
+    print(values)
+    print(counts)
     break
 
 # for p in data_dicts[0]["label"]:
