@@ -129,12 +129,12 @@ data_dicts = [
 
 random.shuffle(data_dicts)
 
-# for p in data_dicts[0]["images"]:
+for p in data_dicts[0]["label"]:
 #     x = nib.load(p).get_fdata(dtype="float32", caching="unchanged")
 #     print(x.shape)
 
-# x = nib.load(data_dicts[0]["label"]).get_fdata(dtype="float32", caching="unchanged")
-# print(x.shape)
+    x = nib.load(p).get_fdata(dtype="float32", caching="unchanged")
+    print(type(x))
 
 
 val_files, train_files = (
@@ -202,13 +202,6 @@ val_loader = DataLoader(val_ds, batch_size=batch_size, shuffle=False, num_worker
 #     dropout_rate=0.0,
 # ).to(device)
 
-for batch_data in train_loader:
-    inputs, labels = (
-        batch_data["images"].to(device),
-        batch_data["label"].to(device),
-    )
-    print(torch.unique(labels, return_counts=True))
-    break
 
 # class weights
 class_weights = np.array([45.465614, 16.543337, 49.11155], dtype="f")
