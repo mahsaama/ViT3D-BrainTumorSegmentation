@@ -37,6 +37,7 @@ import time
 import random
 import numpy as np
 import warnings
+import nibabel as nib
 
 warnings.filterwarnings("ignore")
 
