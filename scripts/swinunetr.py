@@ -133,7 +133,8 @@ data_dicts = [
 random.shuffle(data_dicts)
 
 for p in seg_list:
-    print(p)
+    image = sitk.ReadImage(p)
+    print(type(image))
     break
 
 # for p in data_dicts[0]["label"]:
