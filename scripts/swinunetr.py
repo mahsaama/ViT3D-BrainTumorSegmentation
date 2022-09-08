@@ -132,15 +132,15 @@ data_dicts = [
 
 random.shuffle(data_dicts)
 
-w = [0, 0, 0, 0, 0]
-
-for p in seg_list:
-    image = sitk.ReadImage(p)
-    arr = sitk.GetArrayViewFromImage(image)
-    values, counts = np.unique(arr, return_counts=True)
-    for i in range(len(values)):
-        w[values[i]] += counts[i]
-print(w)
+# w = [0, 0, 0, 0, 0]
+#
+# for p in seg_list:
+#     image = sitk.ReadImage(p)
+#     arr = sitk.GetArrayViewFromImage(image)
+#     values, counts = np.unique(arr, return_counts=True)
+#     for i in range(len(values)):
+#         w[values[i]] += counts[i]
+# print(w)
 
 # for p in data_dicts[0]["label"]:
 # #     x = nib.load(p).get_fdata(dtype="float32", caching="unchanged")
@@ -217,7 +217,7 @@ val_loader = DataLoader(val_ds, batch_size=batch_size, shuffle=False, num_worker
 
 
 # class weights
-class_weights = np.array([45.465614, 16.543337, 49.11155], dtype="f")
+class_weights = np.array([403.63, 154.65, 453.25], dtype="f")
 weights = torch.tensor(
     class_weights, dtype=torch.float32, device=torch.device("cuda:0")
 )
