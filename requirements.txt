@@ -4,3 +4,4 @@ nibabel
 tqdm
 einops
 numpy
+SimpleITK

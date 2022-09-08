@@ -38,6 +38,8 @@ import random
 import numpy as np
 import warnings
 import nibabel as nib
+import SimpleITK as sitk
+
 
 warnings.filterwarnings("ignore")
 
@@ -130,12 +132,16 @@ data_dicts = [
 
 random.shuffle(data_dicts)
 
-for p in data_dicts[0]["label"]:
-#     x = nib.load(p).get_fdata(dtype="float32", caching="unchanged")
-#     print(x.shape)
+for p in seg_list:
+    print(p)
+    break
 
-    x = nib.load(p).get_fdata(dtype="float32", caching="unchanged")
-    print(type(x))
+# for p in data_dicts[0]["label"]:
+# #     x = nib.load(p).get_fdata(dtype="float32", caching="unchanged")
+# #     print(x.shape)
+#
+#     x = nib.load(p).get_fdata(dtype="float32", caching="unchanged")
+#     print(type(x))
 
 
 val_files, train_files = (
