@@ -202,8 +202,16 @@ val_loader = DataLoader(val_ds, batch_size=batch_size, shuffle=False, num_worker
 #     dropout_rate=0.0,
 # ).to(device)
 
+for batch_data in train_loader:
+    inputs, labels = (
+        batch_data["images"].to(device),
+        batch_data["label"].to(device),
+    )
+    print(torch.unique(labels, return_counts=True))
+    break
+
 # class weights
-class_weights = np.array([1, 45.465614, 16.543337, 49.11155], dtype="f")
+class_weights = np.array([45.465614, 16.543337, 49.11155], dtype="f")
 weights = torch.tensor(
     class_weights, dtype=torch.float32, device=torch.device("cuda:0")
 )
