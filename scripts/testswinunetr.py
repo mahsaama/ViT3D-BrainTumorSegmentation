@@ -215,7 +215,7 @@ val_loader = DataLoader(val_ds, batch_size=batch_size, shuffle=False, num_worker
 
 
 # class weights
-class_weights = np.array([800, 154.65, 453.25], dtype="f")
+class_weights = np.array([2400, 154.65, 453.25], dtype="f")
 weights = torch.tensor(
     class_weights, dtype=torch.float32, device=torch.device("cuda:0")
 )
