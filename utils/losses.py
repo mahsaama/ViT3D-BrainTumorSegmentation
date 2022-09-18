@@ -120,16 +120,20 @@ class DiceLoss(_Loss):
                 target = one_hot(target, num_classes=n_pred_ch)
 
         if not self.include_background:
-            if n_pred_ch == 1:
-                warnings.warn("single channel prediction, `include_background=False` ignored.")
-            else:
-                # if skipping background, removing first channel
-                target_1 = target[:, 1]
-                input_1 = input[:, 1]
-                target_2 = target[:, 2]
-                input_2 = input[:, 2]
-                target_3 = target[:, 3]
-                input_3 = input[:, 3]
+            target_1 = target[:, 0]
+            input_1 = input[:, 0]
+            target_2 = target[:, 1]
+            input_2 = input[:, 1]
+            target_3 = target[:, 2]
+            input_3 = input[:, 2]
+        else:
+            # if skipping background, removing first channel
+            target_1 = target[:, 1]
+            input_1 = input[:, 1]
+            target_2 = target[:, 2]
+            input_2 = input[:, 2]
+            target_3 = target[:, 3]
+            input_3 = input[:, 3]
 
         print(input.shape)
         print(target.shape)
