@@ -131,6 +131,8 @@ class DiceLoss(_Loss):
                 target_3 = target[:, 3]
                 input_3 = input[:, 3]
 
+        print(input)
+        print(target.shape)
 
         if target_1.shape != input_1.shape:
             raise AssertionError(f"1. ground truth has different shape ({target_1.shape}) from input ({input_1.shape})")
