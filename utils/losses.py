@@ -131,7 +131,7 @@ class DiceLoss(_Loss):
                 target_3 = target[:, 3]
                 input_3 = input[:, 3]
 
-        print(input)
+        print(input.shape)
         print(target.shape)
 
         if target_1.shape != input_1.shape:
