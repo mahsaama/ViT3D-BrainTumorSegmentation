@@ -1,7 +1,7 @@
 import os
 import torch
 from monai.data import DataLoader, Dataset
-from utils.losses import DiceCELoss
+from monai.losses.dice import DiceCELoss
 from monai.metrics import DiceMetric
 from monai.networks.nets import SwinUNETR, UNETR
 from monai.utils import set_determinism
@@ -93,6 +93,13 @@ if ds == "2020":
     seg_list = sorted(glob.glob(data_dir + "*/*seg.nii.gz"))
 
     data_dir = "../Dataset_BRATS_2020/Augmented/"
+    t1_list += sorted(glob.glob(data_dir + "*/*t1.nii.gz"))
+    t2_list += sorted(glob.glob(data_dir + "*/*t2.nii.gz"))
+    t1ce_list += sorted(glob.glob(data_dir + "*/*t1ce.nii.gz"))
+    flair_list += sorted(glob.glob(data_dir + "*/*flair.nii.gz"))
+    seg_list += sorted(glob.glob(data_dir + "*/*seg.nii.gz"))
+
+    data_dir = "../Dataset_BRATS_2020/Augmented2/"
     t1_list += sorted(glob.glob(data_dir + "*/*t1.nii.gz"))
     t2_list += sorted(glob.glob(data_dir + "*/*t2.nii.gz"))
     t1ce_list += sorted(glob.glob(data_dir + "*/*t1ce.nii.gz"))
