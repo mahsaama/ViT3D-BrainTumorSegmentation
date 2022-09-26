@@ -204,8 +204,8 @@ val_transform = Compose(
 train_ds = Dataset(data=train_files, transform=train_transform)
 val_ds = Dataset(data=val_files, transform=val_transform)
 
-train_loader = DataLoader(train_ds, batch_size=batch_size)
-val_loader = DataLoader(val_ds, batch_size=batch_size)
+train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True, num_workers=2)
+val_loader = DataLoader(val_ds, batch_size=batch_size, shuffle=False, num_workers=2)
 
 # model definition
 # model = UNETR(
