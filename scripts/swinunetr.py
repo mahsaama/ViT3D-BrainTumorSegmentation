@@ -92,19 +92,19 @@ if ds == "2020":
     flair_list = sorted(glob.glob(data_dir + "*/*flair.nii.gz"))
     seg_list = sorted(glob.glob(data_dir + "*/*seg.nii.gz"))
 
-    data_dir = "../Dataset_BRATS_2020/Augmented/"
-    t1_list += sorted(glob.glob(data_dir + "*/*t1.nii.gz"))
-    t2_list += sorted(glob.glob(data_dir + "*/*t2.nii.gz"))
-    t1ce_list += sorted(glob.glob(data_dir + "*/*t1ce.nii.gz"))
-    flair_list += sorted(glob.glob(data_dir + "*/*flair.nii.gz"))
-    seg_list += sorted(glob.glob(data_dir + "*/*seg.nii.gz"))
-
-    data_dir = "../Dataset_BRATS_2020/Augmented2/"
-    t1_list += sorted(glob.glob(data_dir + "*/*t1.nii.gz"))
-    t2_list += sorted(glob.glob(data_dir + "*/*t2.nii.gz"))
-    t1ce_list += sorted(glob.glob(data_dir + "*/*t1ce.nii.gz"))
-    flair_list += sorted(glob.glob(data_dir + "*/*flair.nii.gz"))
-    seg_list += sorted(glob.glob(data_dir + "*/*seg.nii.gz"))
+    # data_dir = "../Dataset_BRATS_2020/Augmented/"
+    # t1_list += sorted(glob.glob(data_dir + "*/*t1.nii.gz"))
+    # t2_list += sorted(glob.glob(data_dir + "*/*t2.nii.gz"))
+    # t1ce_list += sorted(glob.glob(data_dir + "*/*t1ce.nii.gz"))
+    # flair_list += sorted(glob.glob(data_dir + "*/*flair.nii.gz"))
+    # seg_list += sorted(glob.glob(data_dir + "*/*seg.nii.gz"))
+    #
+    # data_dir = "../Dataset_BRATS_2020/Augmented2/"
+    # t1_list += sorted(glob.glob(data_dir + "*/*t1.nii.gz"))
+    # t2_list += sorted(glob.glob(data_dir + "*/*t2.nii.gz"))
+    # t1ce_list += sorted(glob.glob(data_dir + "*/*t1ce.nii.gz"))
+    # flair_list += sorted(glob.glob(data_dir + "*/*flair.nii.gz"))
+    # seg_list += sorted(glob.glob(data_dir + "*/*seg.nii.gz"))
 
 elif ds == "2021":
     data_dir = "../Dataset_BRATS_2021/"
@@ -204,8 +204,8 @@ val_transform = Compose(
 train_ds = Dataset(data=train_files, transform=train_transform)
 val_ds = Dataset(data=val_files, transform=val_transform)
 
-train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True, num_workers=2)
-val_loader = DataLoader(val_ds, batch_size=batch_size, shuffle=False, num_workers=2)
+train_loader = DataLoader(train_ds, batch_size=batch_size)
+val_loader = DataLoader(val_ds, batch_size=batch_size)
 
 # model definition
 # model = UNETR(
@@ -251,7 +251,7 @@ print("Using pretrained self-supervied Swin UNETR backbone weights!")
 loss_function = DiceCELoss(to_onehot_y=False, sigmoid=True, ce_weight=weights)
 # loss_function = SupervisedContrastiveLoss()
 # loss_function = SimCLR_Loss(batch_size, 0.5)
-optimizer = torch.optim.AdamW(model.parameters(), lr=1e-4, weight_decay=1e-5)
+optimizer = torch.optim.AdamW(model.parameters(), lr=1e-2)
 # optimizer = torch.optim.AdamW(filter(lambda p: p.requires_grad, model.parameters()), lr=1e-4, weight_decay=1e-5)
 scheduler = LinearWarmupCosineAnnealingLR(
     optimizer, warmup_epochs=1, max_epochs=max_epochs
