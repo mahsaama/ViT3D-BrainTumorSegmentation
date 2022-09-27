@@ -233,16 +233,16 @@ model = SwinUNETR(
     img_size=tuple(roi_size),
     in_channels=4,
     out_channels=3,
-    feature_size=96,
+    feature_size=24,
     drop_rate=0.0,
     attn_drop_rate=0.0,
     dropout_path_rate=0.0,
     use_checkpoint=False,
 ).to(device)
 
-weight = torch.load("./model_swinvit.pt")
-model.load_from(weights=weight)
-print("Using pretrained self-supervied Swin UNETR backbone weights!")
+# weight = torch.load("./model_swinvit.pt")
+# model.load_from(weights=weight)
+# print("Using pretrained self-supervied Swin UNETR backbone weights!")
 
 # for name, param in model.named_parameters():
 #     if "swinViT" in name and "layers" in name:
