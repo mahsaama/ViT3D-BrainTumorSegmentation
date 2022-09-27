@@ -233,7 +233,7 @@ model = SwinUNETR(
     img_size=tuple(roi_size),
     in_channels=4,
     out_channels=3,
-    feature_size=48,
+    feature_size=24,
     drop_rate=0.0,
     attn_drop_rate=0.0,
     dropout_path_rate=0.0,
@@ -314,7 +314,7 @@ for epoch in range(max_epochs):
         post_trans = Compose(
             [
                 Activations(sigmoid=True),
-                AsDiscrete(threshold=0.5),
+                AsDiscrete(threshold=0.6),
             ]
         )
         metric_sum = metric_sum_tc = metric_sum_wt = metric_sum_et = 0.0
