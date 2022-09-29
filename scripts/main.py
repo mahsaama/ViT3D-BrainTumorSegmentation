@@ -413,10 +413,10 @@ for epoch in range(max_epochs):
                 plt.imshow(val_inputs.cpu()[0, 0, :, :, 32])
                 plt.title("Image")
                 fig.add_subplot(1, 3, 2)
-                plt.imshow(torch.argmax(val_labels, axis=1)[0, :, :, 32])
+                plt.imshow(torch.argmax(val_labels, axis=1).cpu()[0, :, :, 32])
                 plt.title("Label GT")
                 fig.add_subplot(1, 3, 3)
-                plt.imshow(torch.argmax(val_outputs, axis=1)[0, :, :, 32])
+                plt.imshow(torch.argmax(val_outputs, axis=1).cpu()[0, :, :, 32])
                 plt.title("Output")
                 plt.savefig("./validation.png")
                 break
