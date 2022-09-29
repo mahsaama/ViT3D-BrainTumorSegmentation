@@ -283,7 +283,8 @@ for epoch in range(max_epochs):
     model.train()
     epoch_loss = 0
     step = 0
-    for batch_data in tqdm.tqdm(train_loader):
+    train_tqdm = tqdm.tqdm(train_loader)
+    for batch_data in train_tqdm:
         step += 1
         inputs, labels = (
             batch_data["images"].to(device),
@@ -312,6 +313,7 @@ for epoch in range(max_epochs):
         # loss = lam * loss_function(outputs, ys_mixup_a) + (1 - lam) * loss_function(outputs, ys_mixup_b)
 
         loss = loss_function(outputs, labels)
+        train_tqdm.set_postfix({'loss': loss})
         loss.backward()
         optimizer.step()
         epoch_loss += loss.item()
@@ -321,7 +323,7 @@ for epoch in range(max_epochs):
     print(f"\tAverage loss: {epoch_loss:.4f}")
 
     # evaluation
-    print(f"Evaluation ...")
+    print(f"\tEvaluation ...")
     model.eval()
     with torch.no_grad():
         dice_metric = DiceMetric(
