@@ -1,9 +1,14 @@
+# Swinunet
+
+from concurrent.futures import thread
 import os
 import torch
+from monai.apps import DecathlonDataset
 from monai.data import DataLoader, Dataset
-from monai.losses.dice import DiceCELoss
+from monai.losses import DiceCELoss
 from monai.metrics import DiceMetric
-from monai.networks.nets import SwinUNETR
+from monai.networks.nets import UNet
+from monai.networks.nets import UNETR
 from monai.utils import set_determinism
 from monai.transforms import (
     Activations,
@@ -22,19 +27,13 @@ from monai.transforms import (
     Spacingd,
     ToTensord,
 )
-from utils.utils import (
-    ConvertToMultiChannelBasedOnBratsClassesd,
-    BinaryLabel_WT,
-    sec_to_minute,
-    LinearWarmupCosineAnnealingLR,
-)
+from utils.utils import ConvertToMultiChannelBasedOnBratsClassesd, sec_to_minute
 import glob
 import argparse
 import time
 import nibabel as nib
 import random
 import numpy as np
-import matplotlib.pyplot as plt
 
 
 torch.manual_seed(10)
@@ -47,7 +46,7 @@ parser.add_argument(
     "--epochs", default=5, type=int, help="max number of training epochs"
 )
 parser.add_argument("--batch_size", default=1, type=int, help="number of batch size")
-parser.add_argument("--dataset", default="2020", type=str, help="Dataset to use")
+parser.add_argument("--dataset", default=2020, type=int, help="Dataset to use")
 parser.add_argument(
     "--val_frac", default=0.25, type=float, help="fraction of data to use as validation"
 )
@@ -57,7 +56,7 @@ parser.add_argument("--embed_dim", default=768, type=int, help="Embedding dimens
 
 args = parser.parse_args()
 
-root_dir = "./"
+root_dir = "../scripts/"
 set_determinism(seed=0)
 device = torch.device("cuda:0")
 
@@ -68,7 +67,7 @@ batch_size = args.batch_size
 num_heads = args.num_heads
 embed_dim = args.embed_dim
 
-roi_size = [128, 128, 64]  # TODO: change 64 to 128
+roi_size = [128, 128, 64]
 pixdim = (1.5, 1.5, 2.0)
 
 best_metric = -1
@@ -80,33 +79,16 @@ metric_values_tc = []
 metric_values_wt = []
 metric_values_et = []
 
-if ds == "2020":
+if ds == 2020:
     data_dir = "../Dataset_BRATS_2020/Training/"
-    t1_list = sorted(glob.glob(data_dir + "*/*t1.nii.gz"))
-    t2_list = sorted(glob.glob(data_dir + "*/*t2.nii.gz"))
-    t1ce_list = sorted(glob.glob(data_dir + "*/*t1ce.nii.gz"))
-    flair_list = sorted(glob.glob(data_dir + "*/*flair.nii.gz"))
-    seg_list = sorted(glob.glob(data_dir + "*/*seg.nii.gz"))
-elif ds == "2021":
+elif ds == 2021:
     data_dir = "../Dataset_BRATS_2021/"
-    t1_list = sorted(glob.glob(data_dir + "*/*t1.nii.gz"))
-    t2_list = sorted(glob.glob(data_dir + "*/*t2.nii.gz"))
-    t1ce_list = sorted(glob.glob(data_dir + "*/*t1ce.nii.gz"))
-    flair_list = sorted(glob.glob(data_dir + "*/*flair.nii.gz"))
-    seg_list = sorted(glob.glob(data_dir + "*/*seg.nii.gz"))
-elif ds == "2020-2021":  # combiantion of 2020 and 2021, TODO: remove
-    data_dir = "../Dataset_BRATS_2020/Training/"
-    t1_list = sorted(glob.glob(data_dir + "*/*t1.nii.gz"))
-    t2_list = sorted(glob.glob(data_dir + "*/*t2.nii.gz"))
-    t1ce_list = sorted(glob.glob(data_dir + "*/*t1ce.nii.gz"))
-    flair_list = sorted(glob.glob(data_dir + "*/*flair.nii.gz"))
-    seg_list = sorted(glob.glob(data_dir + "*/*seg.nii.gz"))
-    data_dir = "../Dataset_BRATS_2021/"
-    t1_list += sorted(glob.glob(data_dir + "*/*t1.nii.gz"))
-    t2_list += sorted(glob.glob(data_dir + "*/*t2.nii.gz"))
-    t1ce_list += sorted(glob.glob(data_dir + "*/*t1ce.nii.gz"))
-    flair_list += sorted(glob.glob(data_dir + "*/*flair.nii.gz"))
-    seg_list += sorted(glob.glob(data_dir + "*/*seg.nii.gz"))
+
+t1_list = sorted(glob.glob(data_dir + "*/*t1.nii.gz"))
+t2_list = sorted(glob.glob(data_dir + "*/*t2.nii.gz"))
+t1ce_list = sorted(glob.glob(data_dir + "*/*t1ce.nii.gz"))
+flair_list = sorted(glob.glob(data_dir + "*/*flair.nii.gz"))
+seg_list = sorted(glob.glob(data_dir + "*/*seg.nii.gz"))
 
 n_data = len(t1_list)
 
@@ -137,7 +119,7 @@ train_transform = Compose(
         # load 4 Nifti images and stack them together
         LoadImaged(keys=["images", "label"]),
         AsChannelFirstd(keys="images", channel_dim=0),
-        BinaryLabel_WT(keys="label"),
+        ConvertToMultiChannelBasedOnBratsClassesd(keys="label"),
         Spacingd(
             keys=["images", "label"],
             pixdim=pixdim,
@@ -158,7 +140,7 @@ val_transform = Compose(
     [
         LoadImaged(keys=["images", "label"]),
         AsChannelFirstd(keys="images", channel_dim=0),
-        BinaryLabel_WT(keys="label"),
+        ConvertToMultiChannelBasedOnBratsClassesd(keys="label"),
         Spacingd(
             keys=["images", "label"],
             pixdim=pixdim,
@@ -177,52 +159,28 @@ val_ds = Dataset(data=val_files, transform=val_transform)
 train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True, num_workers=2)
 val_loader = DataLoader(val_ds, batch_size=batch_size, shuffle=False, num_workers=2)
 
-
 # model definition
-# model = UNETR(
-#     in_channels=4,
-#     out_channels=3,
-#     img_size=tuple(roi_size),
-#     feature_size=16,
-#     hidden_size=embed_dim,
-#     mlp_dim=3072,
-#     num_heads=num_heads,
-#     pos_embed="perceptron",
-#     norm_name="instance",
-#     res_block=True,
-#     dropout_rate=0.0,
-# ).to(device)
-
-model = SwinUNETR(
-    img_size=tuple(roi_size),
+model = UNETR(
     in_channels=4,
-    out_channels=1,
-    feature_size=48,
-    drop_rate=0.0,
-    attn_drop_rate=0.0,
-    dropout_path_rate=0.0,
-    use_checkpoint=False,
+    out_channels=3,
+    img_size=tuple(roi_size),
+    feature_size=16,
+    hidden_size=embed_dim,
+    mlp_dim=3072,
+    num_heads=num_heads,
+    pos_embed="perceptron",
+    norm_name="instance",
+    res_block=True,
+    dropout_rate=0.0,
 ).to(device)
 
-# weight = torch.load("./model_swinvit.pt")
-# model.load_from(weights=weight)
-# print("Using pretrained self-supervied Swin UNETR backbone weights !")
 
 loss_function = DiceCELoss(to_onehot_y=False, sigmoid=True)
 optimizer = torch.optim.AdamW(model.parameters(), lr=1e-4, weight_decay=1e-5)
-scheduler = LinearWarmupCosineAnnealingLR(
-    optimizer, warmup_epochs=1, max_epochs=max_epochs
-)
-dice_metric = DiceMetric(include_background=True, reduction="mean", get_not_nans=True)
-post_trans = Compose(
-    [
-        Activations(sigmoid=True),
-        AsDiscrete(threshold=0.6),
-    ]
-)
+
 torch.cuda.empty_cache()
 
-results_path = os.path.join(".", "RESULTS")
+results_path = os.path.join("../scripts", "RESULTS")
 if os.path.exists(results_path) == False:
     os.mkdir(results_path)
 
@@ -238,16 +196,9 @@ for epoch in range(max_epochs):
             batch_data["images"].to(device),
             batch_data["label"].to(device),
         )
-        # print(torch.unique(labels))
         # print(inputs.size(), labels.size())
         optimizer.zero_grad()
         outputs = model(inputs)
-        
-        # label_np = np.squeeze(labels.cpu().detach().numpy())
-        # outputs_np = np.squeeze(outputs.cpu().detach().numpy())
-        # arr = np.concatenate((label_np[:, :, 32], outputs_np[:, :, 32]), axis=-1)
-        # plt.imsave("true_pred.png", arr)
-        # print("image saved!")
 
         loss = loss_function(outputs, labels)
         loss.backward()
@@ -261,6 +212,15 @@ for epoch in range(max_epochs):
     # evaluation
     model.eval()
     with torch.no_grad():
+        dice_metric = DiceMetric(
+            include_background=True, reduction="mean", get_not_nans=True
+        )
+        post_trans = Compose(
+            [
+                Activations(sigmoid=True),
+                AsDiscrete(threshold=0.6),
+            ]
+        )
         metric_sum = metric_sum_tc = metric_sum_wt = metric_sum_et = 0.0
         metric_count = metric_count_tc = metric_count_wt = metric_count_et = 0
         for val_data in val_loader:
@@ -270,13 +230,6 @@ for epoch in range(max_epochs):
             )
             val_outputs = model(val_inputs)
             val_outputs = post_trans(val_outputs)
-
-            label_np = np.squeeze(val_labels.cpu().detach().numpy())
-            outputs_np = np.squeeze(val_outputs.cpu().detach().numpy())
-            arr = np.concatenate((label_np[:, :, 32], outputs_np[:, :, 32]), axis=-1)
-            plt.imsave("val_true_pred.png", arr)
-            # print("image saved!")
-            
             dice_metric(y_pred=val_outputs, y=val_labels)
 
             # compute overall mean dice
@@ -287,15 +240,15 @@ for epoch in range(max_epochs):
             metric_sum += value.mean().item() * not_nans
 
             # compute mean dice for TC
-            # dice_metric(y_pred=val_outputs[:, 0:1], y=val_labels[:, 0:1])
-            # value_tc, not_nans = dice_metric.aggregate()
-            # dice_metric.reset()
-            # not_nans = not_nans.item()
-            # metric_count_tc += not_nans
-            # metric_sum_tc += value_tc.item() * not_nans
+            dice_metric(y_pred=val_outputs[:, 0:1], y=val_labels[:, 0:1])
+            value_tc, not_nans = dice_metric.aggregate()
+            dice_metric.reset()
+            not_nans = not_nans.item()
+            metric_count_tc += not_nans
+            metric_sum_tc += value_tc.item() * not_nans
 
             # compute mean dice for WT
-            dice_metric(y_pred=val_outputs[:, 0:1], y=val_labels[:, 0:1])
+            dice_metric(y_pred=val_outputs[:, 1:2], y=val_labels[:, 1:2])
             value_wt, not_nans = dice_metric.aggregate()
             dice_metric.reset()
             not_nans = not_nans.item()
@@ -303,37 +256,35 @@ for epoch in range(max_epochs):
             metric_sum_wt += value_wt.item() * not_nans
 
             # compute mean dice for ET
-            # dice_metric(y_pred=val_outputs[:, 2:3], y=val_labels[:, 2:3])
-            # value_et, not_nans = dice_metric.aggregate()
-            # dice_metric.reset()
-            # not_nans = not_nans.item()
-            # metric_count_et += not_nans
-            # metric_sum_et += value_et.item() * not_nans
+            dice_metric(y_pred=val_outputs[:, 2:3], y=val_labels[:, 2:3])
+            value_et, not_nans = dice_metric.aggregate()
+            dice_metric.reset()
+            not_nans = not_nans.item()
+            metric_count_et += not_nans
+            metric_sum_et += value_et.item() * not_nans
 
         metric = metric_sum / metric_count
         metric_values.append(metric)
-        # metric_tc = metric_sum_tc / metric_count_tc
-        # metric_values_tc.append(metric_tc)
+        metric_tc = metric_sum_tc / metric_count_tc
+        metric_values_tc.append(metric_tc)
         metric_wt = metric_sum_wt / metric_count_wt
         metric_values_wt.append(metric_wt)
-        # metric_et = metric_sum_et / metric_count_et
-        # metric_values_et.append(metric_et)
+        metric_et = metric_sum_et / metric_count_et
+        metric_values_et.append(metric_et)
         if metric > best_metric:
             best_metric = metric
             best_metric_epoch = epoch + 1
-            # torch.save(
-            #     model.state_dict(),
-            #     os.path.join(root_dir, "best_metric_model.pth"),
-            # )
-            # print("\tsaved new best metric model")
+            torch.save(
+                model.state_dict(),
+                os.path.join(root_dir, "best_metric_model.pth"),
+            )
+            print("\tsaved new best metric model")
         print(
             f"\tMean dice: {metric:.4f}\n"
-            f"\tWT: {metric_wt:.4f}\n"
+            f"\tTC: {metric_tc:.4f} WT: {metric_wt:.4f} ET: {metric_et:.4f}\n"
             f"\tBest mean dice: {best_metric:.4f} at Epoch: {best_metric_epoch}\n"
             f"\tTime: {sec_to_minute(time.time()-start)}"
         )
-    scheduler.step()
-
 
 save_name = "./RESULTS/last.pth"
 torch.save(model.state_dict(), save_name)

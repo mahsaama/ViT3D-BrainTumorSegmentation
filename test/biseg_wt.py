@@ -3,7 +3,7 @@ import torch
 from monai.data import DataLoader, Dataset
 from monai.losses.dice import DiceCELoss
 from monai.metrics import DiceMetric
-from monai.networks.nets import SwinUNETR, UNETR
+from monai.networks.nets import SwinUNETR
 from monai.utils import set_determinism
 from monai.transforms import (
     Activations,
@@ -24,28 +24,23 @@ from monai.transforms import (
 )
 from utils.utils import (
     ConvertToMultiChannelBasedOnBratsClassesd,
+    BinaryLabel_WT,
     sec_to_minute,
     LinearWarmupCosineAnnealingLR,
-    # SimCLR_Loss,
-    # SupervisedContrastiveLoss,
-    # mixup_data,
-    # augment_rare_classes,
 )
 import glob
 import argparse
 import time
+import nibabel as nib
 import random
 import numpy as np
-import warnings
-import nibabel as nib
-import SimpleITK as sitk
+import matplotlib.pyplot as plt
 
-
-warnings.filterwarnings("ignore")
 
 torch.manual_seed(10)
 random.seed(10)
 np.random.seed(10)
+
 
 parser = argparse.ArgumentParser(description="Transformer segmentation pipeline")
 parser.add_argument(
@@ -59,9 +54,10 @@ parser.add_argument(
 parser.add_argument("--num_heads", default=12, type=int, help="Number of heads to use")
 parser.add_argument("--embed_dim", default=768, type=int, help="Embedding dimension")
 
+
 args = parser.parse_args()
 
-root_dir = "./"
+root_dir = "../scripts/"
 set_determinism(seed=0)
 device = torch.device("cuda:0")
 
@@ -91,21 +87,6 @@ if ds == "2020":
     t1ce_list = sorted(glob.glob(data_dir + "*/*t1ce.nii.gz"))
     flair_list = sorted(glob.glob(data_dir + "*/*flair.nii.gz"))
     seg_list = sorted(glob.glob(data_dir + "*/*seg.nii.gz"))
-
-    # data_dir = "../Dataset_BRATS_2020/Augmented/"
-    # t1_list += sorted(glob.glob(data_dir + "*/*t1.nii.gz"))
-    # t2_list += sorted(glob.glob(data_dir + "*/*t2.nii.gz"))
-    # t1ce_list += sorted(glob.glob(data_dir + "*/*t1ce.nii.gz"))
-    # flair_list += sorted(glob.glob(data_dir + "*/*flair.nii.gz"))
-    # seg_list += sorted(glob.glob(data_dir + "*/*seg.nii.gz"))
-    #
-    # data_dir = "../Dataset_BRATS_2020/Augmented2/"
-    # t1_list += sorted(glob.glob(data_dir + "*/*t1.nii.gz"))
-    # t2_list += sorted(glob.glob(data_dir + "*/*t2.nii.gz"))
-    # t1ce_list += sorted(glob.glob(data_dir + "*/*t1ce.nii.gz"))
-    # flair_list += sorted(glob.glob(data_dir + "*/*flair.nii.gz"))
-    # seg_list += sorted(glob.glob(data_dir + "*/*seg.nii.gz"))
-
 elif ds == "2021":
     data_dir = "../Dataset_BRATS_2021/"
     t1_list = sorted(glob.glob(data_dir + "*/*t1.nii.gz"))
@@ -128,7 +109,6 @@ elif ds == "2020-2021":  # combiantion of 2020 and 2021, TODO: remove
     seg_list += sorted(glob.glob(data_dir + "*/*seg.nii.gz"))
 
 n_data = len(t1_list)
-print(n_data)
 
 data_dicts = [
     {"images": [t1, t2, t1ce, f], "label": label_name}
@@ -139,27 +119,17 @@ data_dicts = [
 
 random.shuffle(data_dicts)
 
-# w = [0, 0, 0, 0, 0]
-#
-# for p in seg_list:
-#     image = sitk.ReadImage(p)
-#     arr = sitk.GetArrayViewFromImage(image)
-#     values, counts = np.unique(arr, return_counts=True)
-#     for i in range(len(values)):
-#         w[values[i]] += counts[i]
-# print(w)
-
-# for p in data_dicts[0]["label"]:
-# #     x = nib.load(p).get_fdata(dtype="float32", caching="unchanged")
-# #     print(x.shape)
-#
+# for p in data_dicts[0]["images"]:
 #     x = nib.load(p).get_fdata(dtype="float32", caching="unchanged")
-#     print(type(x))
+#     print(x.shape)
+
+# x = nib.load(data_dicts[0]["label"]).get_fdata(dtype="float32", caching="unchanged")
+# print(x.shape)
 
 
 val_files, train_files = (
     data_dicts[: int(n_data * frac)],
-    data_dicts[int(n_data * frac):],
+    data_dicts[int(n_data * frac) :],
 )
 
 train_transform = Compose(
@@ -167,7 +137,7 @@ train_transform = Compose(
         # load 4 Nifti images and stack them together
         LoadImaged(keys=["images", "label"]),
         AsChannelFirstd(keys="images", channel_dim=0),
-        ConvertToMultiChannelBasedOnBratsClassesd(keys="label"),
+        BinaryLabel_WT(keys="label"),
         Spacingd(
             keys=["images", "label"],
             pixdim=pixdim,
@@ -188,7 +158,7 @@ val_transform = Compose(
     [
         LoadImaged(keys=["images", "label"]),
         AsChannelFirstd(keys="images", channel_dim=0),
-        ConvertToMultiChannelBasedOnBratsClassesd(keys="label"),
+        BinaryLabel_WT(keys="label"),
         Spacingd(
             keys=["images", "label"],
             pixdim=pixdim,
@@ -207,12 +177,13 @@ val_ds = Dataset(data=val_files, transform=val_transform)
 train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True, num_workers=2)
 val_loader = DataLoader(val_ds, batch_size=batch_size, shuffle=False, num_workers=2)
 
+
 # model definition
 # model = UNETR(
 #     in_channels=4,
 #     out_channels=3,
 #     img_size=tuple(roi_size),
-#     feature_size=48,
+#     feature_size=16,
 #     hidden_size=embed_dim,
 #     mlp_dim=3072,
 #     num_heads=num_heads,
@@ -222,18 +193,11 @@ val_loader = DataLoader(val_ds, batch_size=batch_size, shuffle=False, num_worker
 #     dropout_rate=0.0,
 # ).to(device)
 
-
-# class weights
-class_weights = np.array([45.465614, 16.543337, 49.11155], dtype="f")
-weights = torch.tensor(
-    class_weights, dtype=torch.float32, device=torch.device("cuda:0")
-)
-
 model = SwinUNETR(
     img_size=tuple(roi_size),
     in_channels=4,
-    out_channels=3,
-    feature_size=24,
+    out_channels=1,
+    feature_size=48,
     drop_rate=0.0,
     attn_drop_rate=0.0,
     dropout_path_rate=0.0,
@@ -242,23 +206,23 @@ model = SwinUNETR(
 
 # weight = torch.load("./model_swinvit.pt")
 # model.load_from(weights=weight)
-# print("Using pretrained self-supervied Swin UNETR backbone weights!")
+# print("Using pretrained self-supervied Swin UNETR backbone weights !")
 
-# for name, param in model.named_parameters():
-#     if "swinViT" in name and "layers" in name:
-#         param.requires_grad = False
-
-loss_function = DiceCELoss(to_onehot_y=False, sigmoid=True, ce_weight=weights)
-# loss_function = SupervisedContrastiveLoss()
-# loss_function = SimCLR_Loss(batch_size, 0.5)
-optimizer = torch.optim.AdamW(model.parameters(), lr=1e-2, weight_decay=1e-5)
-# optimizer = torch.optim.AdamW(filter(lambda p: p.requires_grad, model.parameters()), lr=1e-4, weight_decay=1e-5)
+loss_function = DiceCELoss(to_onehot_y=False, sigmoid=True)
+optimizer = torch.optim.AdamW(model.parameters(), lr=1e-4, weight_decay=1e-5)
 scheduler = LinearWarmupCosineAnnealingLR(
     optimizer, warmup_epochs=1, max_epochs=max_epochs
 )
+dice_metric = DiceMetric(include_background=True, reduction="mean", get_not_nans=True)
+post_trans = Compose(
+    [
+        Activations(sigmoid=True),
+        AsDiscrete(threshold=0.6),
+    ]
+)
 torch.cuda.empty_cache()
 
-results_path = os.path.join(".", "RESULTS")
+results_path = os.path.join("../scripts", "RESULTS")
 if os.path.exists(results_path) == False:
     os.mkdir(results_path)
 
@@ -274,27 +238,16 @@ for epoch in range(max_epochs):
             batch_data["images"].to(device),
             batch_data["label"].to(device),
         )
-        # print(step)
-        # print(inputs.size())
-        # print(labels.size())
-
-        # inputs, labels = augment_rare_classes(inputs, labels)
-        # xs_mixup, ys_mixup_a, ys_mixup_b, lam = mixup_data(
-        #     x=inputs,
-        #     y=labels,
-        #     alpha=1)
-
         # print(torch.unique(labels))
+        # print(inputs.size(), labels.size())
         optimizer.zero_grad()
-        try:
-            outputs = model(inputs)
-        except Exception as e:
-            print(step)
-            print(e)
-            continue
-        # print(outputs.size(), labels.size())
-
-        # loss = lam * loss_function(outputs, ys_mixup_a) + (1 - lam) * loss_function(outputs, ys_mixup_b)
+        outputs = model(inputs)
+        
+        # label_np = np.squeeze(labels.cpu().detach().numpy())
+        # outputs_np = np.squeeze(outputs.cpu().detach().numpy())
+        # arr = np.concatenate((label_np[:, :, 32], outputs_np[:, :, 32]), axis=-1)
+        # plt.imsave("true_pred.png", arr)
+        # print("image saved!")
 
         loss = loss_function(outputs, labels)
         loss.backward()
@@ -308,15 +261,6 @@ for epoch in range(max_epochs):
     # evaluation
     model.eval()
     with torch.no_grad():
-        dice_metric = DiceMetric(
-            include_background=True, reduction="mean", get_not_nans=True
-        )
-        post_trans = Compose(
-            [
-                Activations(sigmoid=True),
-                AsDiscrete(threshold=0.6),
-            ]
-        )
         metric_sum = metric_sum_tc = metric_sum_wt = metric_sum_et = 0.0
         metric_count = metric_count_tc = metric_count_wt = metric_count_et = 0
         for val_data in val_loader:
@@ -324,12 +268,15 @@ for epoch in range(max_epochs):
                 val_data["images"].to(device),
                 val_data["label"].to(device),
             )
-            try:
-                val_outputs = model(val_inputs)
-            except Exception as e:
-                print(e)
-                continue
+            val_outputs = model(val_inputs)
             val_outputs = post_trans(val_outputs)
+
+            label_np = np.squeeze(val_labels.cpu().detach().numpy())
+            outputs_np = np.squeeze(val_outputs.cpu().detach().numpy())
+            arr = np.concatenate((label_np[:, :, 32], outputs_np[:, :, 32]), axis=-1)
+            plt.imsave("val_true_pred.png", arr)
+            # print("image saved!")
+            
             dice_metric(y_pred=val_outputs, y=val_labels)
 
             # compute overall mean dice
@@ -340,15 +287,15 @@ for epoch in range(max_epochs):
             metric_sum += value.mean().item() * not_nans
 
             # compute mean dice for TC
-            dice_metric(y_pred=val_outputs[:, 0:1], y=val_labels[:, 0:1])
-            value_tc, not_nans = dice_metric.aggregate()
-            dice_metric.reset()
-            not_nans = not_nans.item()
-            metric_count_tc += not_nans
-            metric_sum_tc += value_tc.item() * not_nans
+            # dice_metric(y_pred=val_outputs[:, 0:1], y=val_labels[:, 0:1])
+            # value_tc, not_nans = dice_metric.aggregate()
+            # dice_metric.reset()
+            # not_nans = not_nans.item()
+            # metric_count_tc += not_nans
+            # metric_sum_tc += value_tc.item() * not_nans
 
             # compute mean dice for WT
-            dice_metric(y_pred=val_outputs[:, 1:2], y=val_labels[:, 1:2])
+            dice_metric(y_pred=val_outputs[:, 0:1], y=val_labels[:, 0:1])
             value_wt, not_nans = dice_metric.aggregate()
             dice_metric.reset()
             not_nans = not_nans.item()
@@ -356,39 +303,41 @@ for epoch in range(max_epochs):
             metric_sum_wt += value_wt.item() * not_nans
 
             # compute mean dice for ET
-            dice_metric(y_pred=val_outputs[:, 2:3], y=val_labels[:, 2:3])
-            value_et, not_nans = dice_metric.aggregate()
-            dice_metric.reset()
-            not_nans = not_nans.item()
-            metric_count_et += not_nans
-            metric_sum_et += value_et.item() * not_nans
+            # dice_metric(y_pred=val_outputs[:, 2:3], y=val_labels[:, 2:3])
+            # value_et, not_nans = dice_metric.aggregate()
+            # dice_metric.reset()
+            # not_nans = not_nans.item()
+            # metric_count_et += not_nans
+            # metric_sum_et += value_et.item() * not_nans
 
         metric = metric_sum / metric_count
         metric_values.append(metric)
-        metric_tc = metric_sum_tc / metric_count_tc
-        metric_values_tc.append(metric_tc)
+        # metric_tc = metric_sum_tc / metric_count_tc
+        # metric_values_tc.append(metric_tc)
         metric_wt = metric_sum_wt / metric_count_wt
         metric_values_wt.append(metric_wt)
-        metric_et = metric_sum_et / metric_count_et
-        metric_values_et.append(metric_et)
+        # metric_et = metric_sum_et / metric_count_et
+        # metric_values_et.append(metric_et)
         if metric > best_metric:
             best_metric = metric
             best_metric_epoch = epoch + 1
-            torch.save(
-                model.state_dict(),
-                os.path.join(root_dir, "best_metric_model.pth"),
-            )
-            print("\tsaved new best metric model")
+            # torch.save(
+            #     model.state_dict(),
+            #     os.path.join(root_dir, "best_metric_model.pth"),
+            # )
+            # print("\tsaved new best metric model")
         print(
             f"\tMean dice: {metric:.4f}\n"
-            f"\tTC: {metric_tc:.4f} WT: {metric_wt:.4f} ET: {metric_et:.4f}\n"
+            f"\tWT: {metric_wt:.4f}\n"
             f"\tBest mean dice: {best_metric:.4f} at Epoch: {best_metric_epoch}\n"
-            f"\tTime: {sec_to_minute(time.time() - start)}"
+            f"\tTime: {sec_to_minute(time.time()-start)}"
         )
     scheduler.step()
 
+
 save_name = "./RESULTS/last.pth"
 torch.save(model.state_dict(), save_name)
+
 
 print(
     f"Train completed, best_metric: {best_metric:.4f}" f" at epoch: {best_metric_epoch}"

@@ -3,7 +3,7 @@ import torch
 from monai.data import DataLoader, Dataset
 from monai.losses.dice import DiceCELoss
 from monai.metrics import DiceMetric
-from monai.networks.nets import SwinUNETR, UNETR
+from monai.networks.nets import SwinUNETR, UNETR, UNet
 from monai.utils import set_determinism
 from monai.transforms import (
     Activations,
@@ -23,54 +23,58 @@ from monai.transforms import (
     ToTensord,
 )
 from utils.utils import (
-    TestConvertToMultiChannelBasedOnBratsClassesd,
+    ConvertToMultiChannelBasedOnBratsClassesd,
     sec_to_minute,
     LinearWarmupCosineAnnealingLR,
-    # SimCLR_Loss,
-    # SupervisedContrastiveLoss,
-    # mixup_data,
-    # augment_rare_classes,
 )
 import glob
 import argparse
 import time
-import random
+import tqdm
 import numpy as np
 import warnings
-
-
+import matplotlib.pyplot as plt
 warnings.filterwarnings("ignore")
 
-torch.manual_seed(10)
-random.seed(10)
-np.random.seed(10)
 
 parser = argparse.ArgumentParser(description="Transformer segmentation pipeline")
-parser.add_argument(
-    "--epochs", default=5, type=int, help="max number of training epochs"
-)
+parser.add_argument("--epochs", default=5, type=int, help="max number of training epochs")
 parser.add_argument("--batch_size", default=1, type=int, help="number of batch size")
 parser.add_argument("--dataset", default="2020", type=str, help="Dataset to use")
-parser.add_argument(
-    "--val_frac", default=0.25, type=float, help="fraction of data to use as validation"
-)
+parser.add_argument("--augmented", default=0, type=int, help="Add augmented Dataset")
+parser.add_argument("--seed", default=42, type=int, help="Seed for controlling randomness")
+parser.add_argument("--model", default="swinunetr", type=str, help="Model Name")
+parser.add_argument("--val_frac", default=0.25, type=float, help="fraction of data to use as validation")
 parser.add_argument("--num_heads", default=12, type=int, help="Number of heads to use")
 parser.add_argument("--embed_dim", default=768, type=int, help="Embedding dimension")
+parser.add_argument("--num_worker", default=2, type=int, help="Number of workers for Dataloader")
+parser.add_argument("--weighted_class", default=0, type=int, help="Use weights for classes")
+parser.add_argument("--lr", default=1e-4, type=float, help="Learning Rate")
+
 
 args = parser.parse_args()
 
-root_dir = "./"
-set_determinism(seed=0)
+seed = args.seed
+# torch.manual_seed(seed)
+# random.seed(seed)
+# np.random.seed(seed)
+set_determinism(seed=seed)
+
 device = torch.device("cuda:0")
 
 ds = args.dataset
+aug = True if args.augmented == 1 else 0
 frac = args.val_frac
 max_epochs = args.epochs
 batch_size = args.batch_size
+model_name = args.model
 num_heads = args.num_heads
 embed_dim = args.embed_dim
+n_workers = args.num_worker
+weighted_class = True if args.augmented == 1 else 0
+lr = args.lr
 
-roi_size = [128, 128, 64]  # TODO: change 64 to 128
+roi_size = [128, 128, 64]
 pixdim = (1.5, 1.5, 2.0)
 
 best_metric = -1
@@ -89,13 +93,21 @@ if ds == "2020":
     t1ce_list = sorted(glob.glob(data_dir + "*/*t1ce.nii.gz"))
     flair_list = sorted(glob.glob(data_dir + "*/*flair.nii.gz"))
     seg_list = sorted(glob.glob(data_dir + "*/*seg.nii.gz"))
-    #
-    # data_dir = "../Dataset_BRATS_2020/Augmented/"
-    # t1_list += sorted(glob.glob(data_dir + "*/*t1.nii.gz"))
-    # t2_list += sorted(glob.glob(data_dir + "*/*t2.nii.gz"))
-    # t1ce_list += sorted(glob.glob(data_dir + "*/*t1ce.nii.gz"))
-    # flair_list += sorted(glob.glob(data_dir + "*/*flair.nii.gz"))
-    # seg_list += sorted(glob.glob(data_dir + "*/*seg.nii.gz"))
+
+    if aug:
+        data_dir = "../Dataset_BRATS_2020/Augmented/"
+        t1_list += sorted(glob.glob(data_dir + "*/*t1.nii.gz"))
+        t2_list += sorted(glob.glob(data_dir + "*/*t2.nii.gz"))
+        t1ce_list += sorted(glob.glob(data_dir + "*/*t1ce.nii.gz"))
+        flair_list += sorted(glob.glob(data_dir + "*/*flair.nii.gz"))
+        seg_list += sorted(glob.glob(data_dir + "*/*seg.nii.gz"))
+
+        data_dir = "../Dataset_BRATS_2020/Augmented2/"
+        t1_list += sorted(glob.glob(data_dir + "*/*t1.nii.gz"))
+        t2_list += sorted(glob.glob(data_dir + "*/*t2.nii.gz"))
+        t1ce_list += sorted(glob.glob(data_dir + "*/*t1ce.nii.gz"))
+        flair_list += sorted(glob.glob(data_dir + "*/*flair.nii.gz"))
+        seg_list += sorted(glob.glob(data_dir + "*/*seg.nii.gz"))
 
 elif ds == "2021":
     data_dir = "../Dataset_BRATS_2021/"
@@ -104,6 +116,7 @@ elif ds == "2021":
     t1ce_list = sorted(glob.glob(data_dir + "*/*t1ce.nii.gz"))
     flair_list = sorted(glob.glob(data_dir + "*/*flair.nii.gz"))
     seg_list = sorted(glob.glob(data_dir + "*/*seg.nii.gz"))
+
 elif ds == "2020-2021":  # combiantion of 2020 and 2021, TODO: remove
     data_dir = "../Dataset_BRATS_2020/Training/"
     t1_list = sorted(glob.glob(data_dir + "*/*t1.nii.gz"))
@@ -118,8 +131,9 @@ elif ds == "2020-2021":  # combiantion of 2020 and 2021, TODO: remove
     flair_list += sorted(glob.glob(data_dir + "*/*flair.nii.gz"))
     seg_list += sorted(glob.glob(data_dir + "*/*seg.nii.gz"))
 
+
 n_data = len(t1_list)
-print(n_data)
+print(f"Dataset size: {n_data}")
 
 data_dicts = [
     {"images": [t1, t2, t1ce, f], "label": label_name}
@@ -128,8 +142,7 @@ data_dicts = [
     )
 ]
 
-random.shuffle(data_dicts)
-
+# # # Get weights for classes
 # w = [0, 0, 0, 0, 0]
 #
 # for p in seg_list:
@@ -158,7 +171,7 @@ train_transform = Compose(
         # load 4 Nifti images and stack them together
         LoadImaged(keys=["images", "label"]),
         AsChannelFirstd(keys="images", channel_dim=0),
-        TestConvertToMultiChannelBasedOnBratsClassesd(keys="label"),
+        ConvertToMultiChannelBasedOnBratsClassesd(keys="label"),
         Spacingd(
             keys=["images", "label"],
             pixdim=pixdim,
@@ -179,7 +192,7 @@ val_transform = Compose(
     [
         LoadImaged(keys=["images", "label"]),
         AsChannelFirstd(keys="images", channel_dim=0),
-        TestConvertToMultiChannelBasedOnBratsClassesd(keys="label"),
+        ConvertToMultiChannelBasedOnBratsClassesd(keys="label"),
         Spacingd(
             keys=["images", "label"],
             pixdim=pixdim,
@@ -195,57 +208,68 @@ val_transform = Compose(
 train_ds = Dataset(data=train_files, transform=train_transform)
 val_ds = Dataset(data=val_files, transform=val_transform)
 
-train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True, num_workers=2)
-val_loader = DataLoader(val_ds, batch_size=batch_size, shuffle=False, num_workers=2)
+train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True, num_workers=n_workers)
+val_loader = DataLoader(val_ds, batch_size=batch_size, shuffle=True, num_workers=n_workers)
 
-# model definition
-# model = UNETR(
-#     in_channels=4,
-#     out_channels=3,
-#     img_size=tuple(roi_size),
-#     feature_size=48,
-#     hidden_size=embed_dim,
-#     mlp_dim=3072,
-#     num_heads=num_heads,
-#     pos_embed="perceptron",
-#     norm_name="instance",
-#     res_block=True,
-#     dropout_rate=0.0,
-# ).to(device)
+if weighted_class:
+    weights = np.array([45, 16, 50], dtype="f")
+    class_weights = torch.tensor(
+        weights, dtype=torch.float32, device=torch.device("cuda:0")
+    )
+else:
+    class_weights = None
 
+in_ch = 4
+out_ch = 3
 
-# class weights
-class_weights = np.array([403.63, 154.65, 453.25], dtype="f")
-weights = torch.tensor(
-    class_weights, dtype=torch.float32, device=torch.device("cuda:0")
-)
+if model_name == "swinunetr":
+    model = SwinUNETR(
+        img_size=tuple(roi_size),
+        in_channels=in_ch,
+        out_channels=out_ch,
+        feature_size=48,
+        drop_rate=0.0,
+        attn_drop_rate=0.0,
+        dropout_path_rate=0.0,
+        use_checkpoint=True,
+    ).to(device)
 
-model = SwinUNETR(
-    img_size=tuple(roi_size),
-    in_channels=4,
-    out_channels=3,
-    feature_size=48,
-    drop_rate=0.0,
-    attn_drop_rate=0.0,
-    dropout_path_rate=0.0,
-    use_checkpoint=False,
-).to(device)
+    # weight = torch.load("./model_swinvit.pt")
+    # model.load_from(weights=weight)
+    # print("Using pretrained self-supervied Swin UNETR backbone weights!")
 
-weight = torch.load("./model_swinvit.pt")
-model.load_from(weights=weight)
-print("Using pretrained self-supervied Swin UNETR backbone weights!")
+elif model_name == "unetr":
+    model = UNETR(
+        in_channels=in_ch,
+        out_channels=out_ch,
+        img_size=tuple(roi_size),
+        feature_size=48,
+        hidden_size=embed_dim,
+        mlp_dim=3072,
+        num_heads=num_heads,
+        pos_embed="perceptron",
+        norm_name="instance",
+        res_block=True,
+        dropout_rate=0.0,
+    ).to(device)
+elif model_name == "unet":
+    model = UNet(
+        dimensions=3,
+        in_channels=in_ch,
+        out_channels=out_ch,
+        channels=(16, 32, 64, 128, 256),
+        strides=(2, 2, 2, 2),
+        num_res_units=2,
+    ).to(device)
 
 # for name, param in model.named_parameters():
 #     if "swinViT" in name and "layers" in name:
 #         param.requires_grad = False
 
-loss_function = DiceCELoss(to_onehot_y=False, sigmoid=True, ce_weight=weights)
-# loss_function = SupervisedContrastiveLoss()
-# loss_function = SimCLR_Loss(batch_size, 0.5)
-optimizer = torch.optim.AdamW(model.parameters(), lr=1e-4, weight_decay=1e-5)
-# optimizer = torch.optim.AdamW(filter(lambda p: p.requires_grad, model.parameters()), lr=1e-4, weight_decay=1e-5)
+loss_function = DiceCELoss(to_onehot_y=False, sigmoid=True, ce_weight=class_weights)
+optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=1e-5)
 scheduler = LinearWarmupCosineAnnealingLR(
-    optimizer, warmup_epochs=1, max_epochs=max_epochs
+    optimizer, warmup_epochs=max_epochs//2, max_epochs=max_epochs
 )
 torch.cuda.empty_cache()
 
@@ -259,7 +283,7 @@ for epoch in range(max_epochs):
     model.train()
     epoch_loss = 0
     step = 0
-    for batch_data in train_loader:
+    for batch_data in tqdm.tqdm(train_loader):
         step += 1
         inputs, labels = (
             batch_data["images"].to(device),
@@ -297,6 +321,7 @@ for epoch in range(max_epochs):
     print(f"\tAverage loss: {epoch_loss:.4f}")
 
     # evaluation
+    print(f"Evaluation ...")
     model.eval()
     with torch.no_grad():
         dice_metric = DiceMetric(
@@ -310,7 +335,7 @@ for epoch in range(max_epochs):
         )
         metric_sum = metric_sum_tc = metric_sum_wt = metric_sum_et = 0.0
         metric_count = metric_count_tc = metric_count_wt = metric_count_et = 0
-        for val_data in val_loader:
+        for val_data in tqdm.tqdm(val_loader):
             val_inputs, val_labels = (
                 val_data["images"].to(device),
                 val_data["label"].to(device),
@@ -330,7 +355,7 @@ for epoch in range(max_epochs):
             metric_count += not_nans
             metric_sum += value.mean().item() * not_nans
 
-            # compute mean dice for ED
+            # compute mean dice for TC
             dice_metric(y_pred=val_outputs[:, 0:1], y=val_labels[:, 0:1])
             value_tc, not_nans = dice_metric.aggregate()
             dice_metric.reset()
@@ -338,7 +363,7 @@ for epoch in range(max_epochs):
             metric_count_tc += not_nans
             metric_sum_tc += value_tc.item() * not_nans
 
-            # compute mean dice for NCR/NET
+            # compute mean dice for WT
             dice_metric(y_pred=val_outputs[:, 1:2], y=val_labels[:, 1:2])
             value_wt, not_nans = dice_metric.aggregate()
             dice_metric.reset()
@@ -367,12 +392,27 @@ for epoch in range(max_epochs):
             best_metric_epoch = epoch + 1
             torch.save(
                 model.state_dict(),
-                os.path.join(root_dir, "best_metric_model.pth"),
+                os.path.join("./", "best_metric_model.pth"),
             )
             print("\tsaved new best metric model")
+            fig = plt.figure(figsize=(10, 5))
+            for val_data in val_loader:
+                val_inputs, val_labels = (
+                    val_data["images"].to(device),
+                    val_data["label"].to(device),
+                )
+                try:
+                    val_outputs = model(val_inputs)
+                except Exception as e:
+                    print(e)
+                    continue
+                val_outputs = post_trans(val_outputs)
+                print(val_outputs.shape)
+                print(val_labels.shape)
+                break
         print(
             f"\tMean dice: {metric:.4f}\n"
-            f"\tED: {metric_tc:.4f} NCR/NET: {metric_wt:.4f} ET: {metric_et:.4f}\n"
+            f"\tTC: {metric_tc:.4f} WT: {metric_wt:.4f} ET: {metric_et:.4f}\n"
             f"\tBest mean dice: {best_metric:.4f} at Epoch: {best_metric_epoch}\n"
             f"\tTime: {sec_to_minute(time.time() - start)}"
         )
