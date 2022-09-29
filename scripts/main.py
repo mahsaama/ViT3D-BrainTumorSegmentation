@@ -313,7 +313,7 @@ for epoch in range(max_epochs):
         # loss = lam * loss_function(outputs, ys_mixup_a) + (1 - lam) * loss_function(outputs, ys_mixup_b)
 
         loss = loss_function(outputs, labels)
-        train_tqdm.set_postfix({'loss': loss})
+        train_tqdm.set_postfix({'loss': loss.item()})
         loss.backward()
         optimizer.step()
         epoch_loss += loss.item()
@@ -397,7 +397,7 @@ for epoch in range(max_epochs):
                 os.path.join("./", "best_metric_model.pth"),
             )
             print("\tsaved new best metric model")
-            fig = plt.figure(figsize=(10, 5))
+            fig = plt.figure(figsize=(9, 3))
             for val_data in val_loader:
                 val_inputs, val_labels = (
                     val_data["images"].to(device),
@@ -409,8 +409,16 @@ for epoch in range(max_epochs):
                     print(e)
                     continue
                 val_outputs = post_trans(val_outputs)
-                print(val_outputs.shape)
-                print(val_labels.shape)
+                fig.add_subplot(1, 3, 1)
+                plt.imshow(val_inputs[0, 0, :, :, 32])
+                plt.title("Image")
+                fig.add_subplot(1, 3, 2)
+                plt.imshow(torch.argmax(val_labels, axis=1)[0, :, :, 32])
+                plt.title("Label GT")
+                fig.add_subplot(1, 3, 3)
+                plt.imshow(torch.argmax(val_outputs, axis=1)[0, :, :, 32])
+                plt.title("Output")
+                plt.savefig("./validation.png")
                 break
         print(
             f"\tMean dice: {metric:.4f}\n"
