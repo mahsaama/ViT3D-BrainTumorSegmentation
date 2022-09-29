@@ -410,7 +410,7 @@ for epoch in range(max_epochs):
                     continue
                 val_outputs = post_trans(val_outputs)
                 fig.add_subplot(1, 3, 1)
-                plt.imshow(val_inputs[0, 0, :, :, 32])
+                plt.imshow(val_inputs.cpu()[0, 0, :, :, 32])
                 plt.title("Image")
                 fig.add_subplot(1, 3, 2)
                 plt.imshow(torch.argmax(val_labels, axis=1)[0, :, :, 32])
