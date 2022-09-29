@@ -418,7 +418,7 @@ for epoch in range(max_epochs):
                 fig.add_subplot(1, 3, 3)
                 plt.imshow(torch.argmax(val_outputs, axis=1).cpu()[0, :, :, 32])
                 plt.title("Output")
-                plt.savefig("./validation.png")
+                plt.savefig(f"./RESULTS/validation_epoch{epoch}.png")
                 break
         print(
             f"\tMean dice: {metric:.4f}\n"
@@ -431,6 +431,4 @@ for epoch in range(max_epochs):
 save_name = "./RESULTS/last.pth"
 torch.save(model.state_dict(), save_name)
 
-print(
-    f"Train completed, best_metric: {best_metric:.4f}" f" at epoch: {best_metric_epoch}"
-)
+print(f"Train completed, best_metric: {best_metric:.4f} at epoch: {best_metric_epoch}")
