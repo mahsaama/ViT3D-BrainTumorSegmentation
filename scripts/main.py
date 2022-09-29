@@ -42,7 +42,7 @@ parser.add_argument("--epochs", default=5, type=int, help="max number of trainin
 parser.add_argument("--batch_size", default=1, type=int, help="number of batch size")
 parser.add_argument("--dataset", default="2020", type=str, help="Dataset to use")
 parser.add_argument("--augmented", default=0, type=int, help="Add augmented Dataset")
-parser.add_argument("--seed", default=42, type=int, help="Seed for controlling randomness")
+parser.add_argument("--seed", default=10, type=int, help="Seed for controlling randomness")
 parser.add_argument("--model", default="swinunetr", type=str, help="Model Name")
 parser.add_argument("--val_frac", default=0.25, type=float, help="fraction of data to use as validation")
 parser.add_argument("--num_heads", default=12, type=int, help="Number of heads to use")
@@ -269,7 +269,7 @@ elif model_name == "unet":
 loss_function = DiceCELoss(to_onehot_y=False, sigmoid=True, ce_weight=class_weights)
 optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=1e-5)
 scheduler = LinearWarmupCosineAnnealingLR(
-    optimizer, warmup_epochs=max_epochs//2, max_epochs=max_epochs
+    optimizer, warmup_epochs=1, max_epochs=max_epochs
 )
 torch.cuda.empty_cache()
 
