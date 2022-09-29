@@ -88,11 +88,11 @@ metric_values_et = []
 
 if ds == "2020":
     data_dir = "../Dataset_BRATS_2020/Training/"
-    t1_list = sorted(glob.glob(data_dir + "*/*t1.nii.gz"))
-    t2_list = sorted(glob.glob(data_dir + "*/*t2.nii.gz"))
-    t1ce_list = sorted(glob.glob(data_dir + "*/*t1ce.nii.gz"))
-    flair_list = sorted(glob.glob(data_dir + "*/*flair.nii.gz"))
-    seg_list = sorted(glob.glob(data_dir + "*/*seg.nii.gz"))
+    t1_list = sorted(glob.glob(data_dir + "*/*t1.nii.gz"))[:10]
+    t2_list = sorted(glob.glob(data_dir + "*/*t2.nii.gz"))[:10]
+    t1ce_list = sorted(glob.glob(data_dir + "*/*t1ce.nii.gz"))[:10]
+    flair_list = sorted(glob.glob(data_dir + "*/*flair.nii.gz"))[:10]
+    seg_list = sorted(glob.glob(data_dir + "*/*seg.nii.gz"))[:10]
 
     if aug:
         data_dir = "../Dataset_BRATS_2020/Augmented/"
@@ -412,7 +412,7 @@ for epoch in range(max_epochs):
                 break
         print(
             f"\tMean dice: {metric:.4f}\n"
-            f"\tTC: {metric_tc:.4f} WT: {metric_wt:.4f} ET: {metric_et:.4f}\n"
+            f"\tWT: {metric_wt:.4f} TC: {metric_tc:.4f} ET: {metric_et:.4f}\n"
             f"\tBest mean dice: {best_metric:.4f} at Epoch: {best_metric_epoch}\n"
             f"\tTime: {sec_to_minute(time.time() - start)}"
         )
