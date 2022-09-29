@@ -88,11 +88,11 @@ metric_values_et = []
 
 if ds == "2020":
     data_dir = "../Dataset_BRATS_2020/Training/"
-    t1_list = sorted(glob.glob(data_dir + "*/*t1.nii.gz"))[:10]
-    t2_list = sorted(glob.glob(data_dir + "*/*t2.nii.gz"))[:10]
-    t1ce_list = sorted(glob.glob(data_dir + "*/*t1ce.nii.gz"))[:10]
-    flair_list = sorted(glob.glob(data_dir + "*/*flair.nii.gz"))[:10]
-    seg_list = sorted(glob.glob(data_dir + "*/*seg.nii.gz"))[:10]
+    t1_list = sorted(glob.glob(data_dir + "*/*t1.nii.gz"))
+    t2_list = sorted(glob.glob(data_dir + "*/*t2.nii.gz"))
+    t1ce_list = sorted(glob.glob(data_dir + "*/*t1ce.nii.gz"))
+    flair_list = sorted(glob.glob(data_dir + "*/*flair.nii.gz"))
+    seg_list = sorted(glob.glob(data_dir + "*/*seg.nii.gz"))
 
     if aug:
         data_dir = "../Dataset_BRATS_2020/Augmented/"
