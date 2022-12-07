@@ -50,7 +50,7 @@ parser.add_argument("--embed_dim", default=768, type=int, help="Embedding dimens
 parser.add_argument("--num_worker", default=2, type=int, help="Number of workers for Dataloader")
 parser.add_argument("--weighted_class", default=0, type=int, help="Use weights for classes")
 parser.add_argument("--lr", default=1e-4, type=float, help="Learning Rate")
-parser.add_argument("--resume_ckpt", default=1, help="resume training from pretrained checkpoint")
+parser.add_argument("--resume_ckpt", default=1, , type=int, help="resume training from pretrained checkpoint")
 
 args = parser.parse_args()
 
