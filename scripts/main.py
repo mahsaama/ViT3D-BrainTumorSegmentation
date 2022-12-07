@@ -3,7 +3,7 @@ import torch
 from monai.data import DataLoader, Dataset
 from monai.losses.dice import DiceCELoss
 from monai.metrics import DiceMetric
-from monai.networks.nets import SwinUNETR, UNETR, UNet
+from networks.nets import SwinUNETR, UNETR, UNet
 from monai.utils import set_determinism
 from monai.transforms import (
     Activations,
