@@ -75,7 +75,7 @@ weighted_class = True if args.augmented == 1 else 0
 lr = args.lr
 resume_ckpt = True if args.resume_ckpt == 1 else 0
 
-roi_size = [128, 128, 128]
+roi_size = [128, 128, 64]
 pixdim = (1.5, 1.5, 2.0)
 
 best_metric = -1
@@ -235,6 +235,7 @@ if model_name == "swinunetr":
         use_checkpoint=True,
     ).to(device)
 
+    print(resume_ckpt)
     if resume_ckpt:
         # weight = torch.load("./pretrained_model/model_swinvit.pt")
         # model.load_from(weights=weight)
