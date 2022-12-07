@@ -211,29 +211,29 @@ val_files, train_files = (
 roi_size = [128, 128, 128]
 train_transform = Compose(
     [
-        LoadImaged(keys=["image", "label"]),
+        LoadImaged(keys=["images", "label"]),
         ConvertToMultiChannelBasedOnBratsClassesd(keys="label"),
         CropForegroundd(
-            keys=["image", "label"], source_key="image", k_divisible=roi_size
+            keys=["images", "label"], source_key="images", k_divisible=roi_size
         ),
         RandSpatialCropd(
-            keys=["image", "label"], roi_size=roi_size, random_size=False
+            keys=["images", "label"], roi_size=roi_size, random_size=False
         ),
-        RandFlipd(keys=["image", "label"], prob=0.5, spatial_axis=0),
-        RandFlipd(keys=["image", "label"], prob=0.5, spatial_axis=1),
-        RandFlipd(keys=["image", "label"], prob=0.5, spatial_axis=2),
-        NormalizeIntensityd(keys="image", nonzero=True, channel_wise=True),
-        RandScaleIntensityd(keys="image", factors=0.1, prob=1.0),
-        RandShiftIntensityd(keys="image", offsets=0.1, prob=1.0),
-        ToTensord(keys=["image", "label"]),
+        RandFlipd(keys=["images", "label"], prob=0.5, spatial_axis=0),
+        RandFlipd(keys=["images", "label"], prob=0.5, spatial_axis=1),
+        RandFlipd(keys=["images", "label"], prob=0.5, spatial_axis=2),
+        NormalizeIntensityd(keys="images", nonzero=True, channel_wise=True),
+        RandScaleIntensityd(keys="images", factors=0.1, prob=1.0),
+        RandShiftIntensityd(keys="images", offsets=0.1, prob=1.0),
+        ToTensord(keys=["images", "label"]),
     ]
 )
 val_transform = Compose(
     [
-        LoadImaged(keys=["image", "label"]),
+        LoadImaged(keys=["images", "label"]),
         ConvertToMultiChannelBasedOnBratsClassesd(keys="label"),
-        NormalizeIntensityd(keys="image", nonzero=True, channel_wise=True),
-        ToTensord(keys=["image", "label"]),
+        NormalizeIntensityd(keys="images", nonzero=True, channel_wise=True),
+        ToTensord(keys=["images", "label"]),
     ]
 )
 
