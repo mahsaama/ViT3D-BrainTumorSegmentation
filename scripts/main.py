@@ -208,10 +208,11 @@ val_files, train_files = (
 # )
 
 # ## NEW transforms
-roi_size = [128, 128, 128]
+# roi_size = [128, 128, 128]
 train_transform = Compose(
     [
         LoadImaged(keys=["images", "label"]),
+        AsChannelFirstd(keys="images", channel_dim=0),
         ConvertToMultiChannelBasedOnBratsClassesd(keys="label"),
         CropForegroundd(
             keys=["images", "label"], source_key="images", k_divisible=roi_size
@@ -231,6 +232,7 @@ train_transform = Compose(
 val_transform = Compose(
     [
         LoadImaged(keys=["images", "label"]),
+        AsChannelFirstd(keys="images", channel_dim=0),
         ConvertToMultiChannelBasedOnBratsClassesd(keys="label"),
         NormalizeIntensityd(keys="images", nonzero=True, channel_wise=True),
         ToTensord(keys=["images", "label"]),
