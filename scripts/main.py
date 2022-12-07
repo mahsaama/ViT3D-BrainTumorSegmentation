@@ -235,12 +235,11 @@ if model_name == "swinunetr":
         use_checkpoint=True,
     ).to(device)
 
-    print(resume_ckpt)
     if resume_ckpt:
-        # weight = torch.load("./pretrained_model/model_swinvit.pt")
+        # weight = torch.load("./pretrained_models/model_swinvit.pt")
         # model.load_from(weights=weight)
         # print("Using pretrained self-supervied Swin UNETR backbone weights!")
-        model_dict = torch.load("./pretrained_model/model.pt")["state_dict"]
+        model_dict = torch.load("./pretrained_models/model.pt")["state_dict"]
         model.load_state_dict(model_dict)
         print("Using pretrained weights")
 
