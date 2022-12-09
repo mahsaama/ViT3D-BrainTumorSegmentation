@@ -168,64 +168,25 @@ val_files, train_files = (
     data_dicts[int(n_data * frac):],
 )
 
-# train_transform = Compose(
-#     [
-#         # load 4 Nifti images and stack them together
-#         LoadImaged(keys=["images", "label"]),
-#         AsChannelFirstd(keys="images", channel_dim=0),
-#         ConvertToMultiChannelBasedOnBratsClassesd(keys="label"),
-#         Spacingd(
-#             keys=["images", "label"],
-#             pixdim=pixdim,
-#             mode=("bilinear", "nearest"),
-#         ),
-#         Orientationd(keys=["images", "label"], axcodes="RAS"),
-#         RandSpatialCropd(
-#             keys=["images", "label"], roi_size=roi_size, random_size=False
-#         ),
-#         RandFlipd(keys=["images", "label"], prob=0.5, spatial_axis=0),
-#         NormalizeIntensityd(keys="images", nonzero=True, channel_wise=True),
-#         RandScaleIntensityd(keys="images", factors=0.1, prob=0.5),
-#         RandShiftIntensityd(keys="images", offsets=0.1, prob=0.5),
-#         ToTensord(keys=["images", "label"]),
-#     ]
-# )
-# val_transform = Compose(
-#     [
-#         LoadImaged(keys=["images", "label"]),
-#         AsChannelFirstd(keys="images", channel_dim=0),
-#         ConvertToMultiChannelBasedOnBratsClassesd(keys="label"),
-#         Spacingd(
-#             keys=["images", "label"],
-#             pixdim=pixdim,
-#             mode=("bilinear", "nearest"),
-#         ),
-#         Orientationd(keys=["images", "label"], axcodes="RAS"),
-#         CenterSpatialCropd(keys=["images", "label"], roi_size=roi_size),
-#         NormalizeIntensityd(keys="images", nonzero=True, channel_wise=True),
-#         ToTensord(keys=["images", "label"]),
-#     ]
-# )
-
-# ## NEW transforms
-# roi_size = [128, 128, 128]
 train_transform = Compose(
     [
+        # load 4 Nifti images and stack them together
         LoadImaged(keys=["images", "label"]),
         AsChannelFirstd(keys="images", channel_dim=0),
         ConvertToMultiChannelBasedOnBratsClassesd(keys="label"),
-        CropForegroundd(
-            keys=["images", "label"], source_key="images", k_divisible=roi_size
+        Spacingd(
+            keys=["images", "label"],
+            pixdim=pixdim,
+            mode=("bilinear", "nearest"),
         ),
+        Orientationd(keys=["images", "label"], axcodes="RAS"),
         RandSpatialCropd(
             keys=["images", "label"], roi_size=roi_size, random_size=False
         ),
         RandFlipd(keys=["images", "label"], prob=0.5, spatial_axis=0),
-        RandFlipd(keys=["images", "label"], prob=0.5, spatial_axis=1),
-        RandFlipd(keys=["images", "label"], prob=0.5, spatial_axis=2),
         NormalizeIntensityd(keys="images", nonzero=True, channel_wise=True),
-        RandScaleIntensityd(keys="images", factors=0.1, prob=1.0),
-        RandShiftIntensityd(keys="images", offsets=0.1, prob=1.0),
+        RandScaleIntensityd(keys="images", factors=0.1, prob=0.5),
+        RandShiftIntensityd(keys="images", offsets=0.1, prob=0.5),
         ToTensord(keys=["images", "label"]),
     ]
 )
@@ -234,10 +195,48 @@ val_transform = Compose(
         LoadImaged(keys=["images", "label"]),
         AsChannelFirstd(keys="images", channel_dim=0),
         ConvertToMultiChannelBasedOnBratsClassesd(keys="label"),
+        Spacingd(
+            keys=["images", "label"],
+            pixdim=pixdim,
+            mode=("bilinear", "nearest"),
+        ),
+        Orientationd(keys=["images", "label"], axcodes="RAS"),
+        CenterSpatialCropd(keys=["images", "label"], roi_size=roi_size),
         NormalizeIntensityd(keys="images", nonzero=True, channel_wise=True),
         ToTensord(keys=["images", "label"]),
     ]
 )
+
+## NEW transforms
+# train_transform = Compose(
+#     [
+#         LoadImaged(keys=["images", "label"]),
+#         AsChannelFirstd(keys="images", channel_dim=0),
+#         ConvertToMultiChannelBasedOnBratsClassesd(keys="label"),
+#         CropForegroundd(
+#             keys=["images", "label"], source_key="images", k_divisible=roi_size
+#         ),
+#         RandSpatialCropd(
+#             keys=["images", "label"], roi_size=roi_size, random_size=False
+#         ),
+#         RandFlipd(keys=["images", "label"], prob=0.5, spatial_axis=0),
+#         RandFlipd(keys=["images", "label"], prob=0.5, spatial_axis=1),
+#         RandFlipd(keys=["images", "label"], prob=0.5, spatial_axis=2),
+#         NormalizeIntensityd(keys="images", nonzero=True, channel_wise=True),
+#         RandScaleIntensityd(keys="images", factors=0.1, prob=1.0),
+#         RandShiftIntensityd(keys="images", offsets=0.1, prob=1.0),
+#         ToTensord(keys=["images", "label"]),
+#     ]
+# )
+# val_transform = Compose(
+#     [
+#         LoadImaged(keys=["images", "label"]),
+#         AsChannelFirstd(keys="images", channel_dim=0),
+#         ConvertToMultiChannelBasedOnBratsClassesd(keys="label"),
+#         NormalizeIntensityd(keys="images", nonzero=True, channel_wise=True),
+#         ToTensord(keys=["images", "label"]),
+#     ]
+# )
 
 train_ds = Dataset(data=train_files, transform=train_transform)
 val_ds = Dataset(data=val_files, transform=val_transform)
