@@ -22,7 +22,7 @@ from torch.nn import LayerNorm
 from networks.blocks import MLPBlock as Mlp
 from networks.blocks import PatchEmbed, UnetOutBlock, UnetrBasicBlock, UnetrUpBlock
 from networks.layers import DropPath, trunc_normal_
-from utils import ensure_tuple_rep, look_up_option, optional_import
+from monai.utils import ensure_tuple_rep, look_up_option, optional_import
 
 rearrange, _ = optional_import("einops", name="rearrange")
 
