@@ -14,7 +14,7 @@ from typing import Sequence, Tuple, Union
 import torch
 import torch.nn as nn
 
-from monai.networks.blocks.dynunet_block import UnetBasicBlock, UnetResBlock, get_conv_layer
+from networks.blocks.dynunet_block import UnetBasicBlock, UnetResBlock, get_conv_layer
 
 
 class UnetrUpBlock(nn.Module):

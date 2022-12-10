@@ -15,9 +15,9 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-from monai.networks.blocks.convolutions import Convolution
-from monai.networks.layers.factories import Act, Norm
-from monai.networks.layers.utils import get_act_layer, get_norm_layer
+from networks.blocks.convolutions import Convolution
+from networks.layers.factories import Act, Norm
+from networks.layers.utils import get_act_layer, get_norm_layer
 
 
 class UnetResBlock(nn.Module):
@@ -60,6 +60,7 @@ class UnetResBlock(nn.Module):
             act=None,
             norm=None,
             conv_only=False,
+            deformable=True,
         )
         self.conv2 = get_conv_layer(
             spatial_dims,
@@ -71,6 +72,7 @@ class UnetResBlock(nn.Module):
             act=None,
             norm=None,
             conv_only=False,
+            deformable=True,
         )
         self.lrelu = get_act_layer(name=act_name)
         self.norm1 = get_norm_layer(name=norm_name, spatial_dims=spatial_dims, channels=out_channels)
@@ -276,6 +278,7 @@ def get_conv_layer(
     bias: bool = False,
     conv_only: bool = True,
     is_transposed: bool = False,
+    deformable: bool = False,
 ):
     padding = get_padding(kernel_size, stride)
     output_padding = None
@@ -295,6 +298,7 @@ def get_conv_layer(
         is_transposed=is_transposed,
         padding=padding,
         output_padding=output_padding,
+        deformable=deformable,
     )
 
 

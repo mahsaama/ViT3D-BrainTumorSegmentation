@@ -19,10 +19,10 @@ import torch.nn.functional as F
 import torch.utils.checkpoint as checkpoint
 from torch.nn import LayerNorm
 
-from monai.networks.blocks import MLPBlock as Mlp
-from monai.networks.blocks import PatchEmbed, UnetOutBlock, UnetrBasicBlock, UnetrUpBlock
-from monai.networks.layers import DropPath, trunc_normal_
-from monai.utils import ensure_tuple_rep, look_up_option, optional_import
+from networks.blocks import MLPBlock as Mlp
+from networks.blocks import PatchEmbed, UnetOutBlock, UnetrBasicBlock, UnetrUpBlock
+from networks.layers import DropPath, trunc_normal_
+from utils import ensure_tuple_rep, look_up_option, optional_import
 
 rearrange, _ = optional_import("einops", name="rearrange")
 

@@ -15,9 +15,10 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-from monai.networks.blocks import ADN
-from monai.networks.layers.convutils import same_padding, stride_minus_kernel_padding
-from monai.networks.layers.factories import Conv
+from networks.blocks import ADN
+from networks.layers.convutils import same_padding, stride_minus_kernel_padding
+from networks.layers.factories import Conv
+from networks.layers.deformable_conv import DeformConv3d
 
 
 class Convolution(nn.Sequential):
@@ -112,6 +113,7 @@ class Convolution(nn.Sequential):
         is_transposed: bool = False,
         padding: Optional[Union[Sequence[int], int]] = None,
         output_padding: Optional[Union[Sequence[int], int]] = None,
+        deformable: bool = False,
     ) -> None:
         super().__init__()
         self.spatial_dims = spatial_dims
@@ -123,31 +125,41 @@ class Convolution(nn.Sequential):
         conv_type = Conv[Conv.CONVTRANS if is_transposed else Conv.CONV, self.spatial_dims]
 
         conv: nn.Module
-        if is_transposed:
-            if output_padding is None:
-                output_padding = stride_minus_kernel_padding(1, strides)
-            conv = conv_type(
-                in_channels,
-                out_channels,
+        if deformable:
+            conv = DeformConv3d(
+                in_channels=in_channels,
+                out_channels=out_channels,
                 kernel_size=kernel_size,
                 stride=strides,
                 padding=padding,
-                output_padding=output_padding,
-                groups=groups,
                 bias=bias,
-                dilation=dilation,
             )
         else:
-            conv = conv_type(
-                in_channels,
-                out_channels,
-                kernel_size=kernel_size,
-                stride=strides,
-                padding=padding,
-                dilation=dilation,
-                groups=groups,
-                bias=bias,
-            )
+            if is_transposed:
+                if output_padding is None:
+                    output_padding = stride_minus_kernel_padding(1, strides)
+                conv = conv_type(
+                    in_channels,
+                    out_channels,
+                    kernel_size=kernel_size,
+                    stride=strides,
+                    padding=padding,
+                    output_padding=output_padding,
+                    groups=groups,
+                    bias=bias,
+                    dilation=dilation,
+                )
+            else:
+                conv = conv_type(
+                    in_channels,
+                    out_channels,
+                    kernel_size=kernel_size,
+                    stride=strides,
+                    padding=padding,
+                    dilation=dilation,
+                    groups=groups,
+                    bias=bias,
+                )
 
         self.add_module("conv", conv)
 
