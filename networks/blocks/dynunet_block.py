@@ -60,7 +60,7 @@ class UnetResBlock(nn.Module):
             act=None,
             norm=None,
             conv_only=False,
-            deformable=True,
+            # deformable=True,
         )
         self.conv2 = get_conv_layer(
             spatial_dims,
