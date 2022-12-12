@@ -89,7 +89,8 @@ metric_values_wt = []
 metric_values_et = []
 
 if ds == "2020":
-    data_dir = "../Dataset_BRATS_2020/Training/"
+    data_dir = "/kaggle/input/brats20-dataset-training-validation/BraTS2020_TrainingData/"
+    # data_dir = "../Dataset_BRATS_2020/Training/"
     t1_list = sorted(glob.glob(data_dir + "*/*t1.nii.gz"))
     t2_list = sorted(glob.glob(data_dir + "*/*t2.nii.gz"))
     t1ce_list = sorted(glob.glob(data_dir + "*/*t1ce.nii.gz"))
