@@ -142,9 +142,9 @@ data_dicts = [
     {"images": [t1, t2, t1ce, f], "label": label_name}
     for t1, t2, t1ce, f, label_name in zip(
         t1_list, t2_list, t1ce_list, flair_list, seg_list
-    ) if "325" not in t1
+    ) 
+    # if "325" not in t1
 ]
-print(len(data_dicts))
 
 # # # Get weights for classes
 # w = [0, 0, 0, 0, 0]
