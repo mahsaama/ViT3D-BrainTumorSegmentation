@@ -2,6 +2,7 @@ import os
 import torch
 from monai.data import DataLoader, Dataset
 from monai.losses.dice import DiceCELoss
+from monai.losses import DiceLoss
 from monai.metrics import DiceMetric
 from networks.nets import SwinUNETR, UNETR, UNet
 from monai.utils import set_determinism
@@ -305,7 +306,8 @@ elif model_name == "unet":
 #     if "swinViT" in name and "layers" in name:
 #         param.requires_grad = False
 
-loss_function = DiceCELoss(to_onehot_y=False, sigmoid=True, ce_weight=class_weights)
+# loss_function = DiceCELoss(to_onehot_y=False, sigmoid=True, ce_weight=class_weights)
+loss_function = DiceLoss(to_onehot_y=False, sigmoid=True)
 optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=1e-5)
 scheduler = LinearWarmupCosineAnnealingLR(
     optimizer, warmup_epochs=1, max_epochs=max_epochs
@@ -348,8 +350,6 @@ for epoch in range(max_epochs):
             print(e)
             continue
         # print(outputs.size(), labels.size())
-
-        # loss = lam * loss_function(outputs, ys_mixup_a) + (1 - lam) * loss_function(outputs, ys_mixup_b)
 
         loss = loss_function(outputs, labels)
         train_tqdm.set_postfix({'loss': loss.item()})
