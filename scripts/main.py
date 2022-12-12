@@ -92,11 +92,11 @@ metric_values_et = []
 if ds == "2020":
     data_dir = args.datapath
     print(data_dir)
-    t1_list = sorted(glob.glob(data_dir + "*/*t1.nii.gz"))
-    t2_list = sorted(glob.glob(data_dir + "*/*t2.nii.gz"))
-    t1ce_list = sorted(glob.glob(data_dir + "*/*t1ce.nii.gz"))
-    flair_list = sorted(glob.glob(data_dir + "*/*flair.nii.gz"))
-    seg_list = sorted(glob.glob(data_dir + "*/*seg.nii.gz"))
+    t1_list = sorted(glob.glob(data_dir + "*/*t1.nii"))
+    t2_list = sorted(glob.glob(data_dir + "*/*t2.nii"))
+    t1ce_list = sorted(glob.glob(data_dir + "*/*t1ce.nii"))
+    flair_list = sorted(glob.glob(data_dir + "*/*flair.nii"))
+    seg_list = sorted(glob.glob(data_dir + "*/*seg.nii"))
 
     if aug:
         data_dir = "../Dataset_BRATS_2020/Augmented3/"
