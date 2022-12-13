@@ -309,8 +309,8 @@ print("Total parameters count", pytorch_total_params)
 #         param.requires_grad = False
 
 # loss_function = DiceCELoss(to_onehot_y=False, sigmoid=True, ce_weight=class_weights)
-# loss_function = DiceLoss(to_onehot_y=False, sigmoid=True)
-loss_function = DiceLoss(to_onehot_y=False, sigmoid=True, squared_pred=True, smooth_nr=0.0, smooth_dr=1e-6)
+loss_function = DiceLoss(to_onehot_y=False, sigmoid=True)
+# loss_function = DiceLoss(to_onehot_y=False, sigmoid=True, squared_pred=True, smooth_nr=0.0, smooth_dr=1e-6)
 
 # optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=1e-5)
 optimizer = torch.optim.SGD(model.parameters(), lr=lr, momentum=0.99, nesterov=True, weight_decay=1e-5)
