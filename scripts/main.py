@@ -301,12 +301,16 @@ elif model_name == "unet":
         num_res_units=2,
     ).to(device)
 
+pytorch_total_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+print("Total parameters count", pytorch_total_params)
+
 # for name, param in model.named_parameters():
 #     if "swinViT" in name and "layers" in name:
 #         param.requires_grad = False
 
 # loss_function = DiceCELoss(to_onehot_y=False, sigmoid=True, ce_weight=class_weights)
 loss_function = DiceLoss(to_onehot_y=False, sigmoid=True)
+# loss_function = DiceLoss(to_onehot_y=False, sigmoid=True, squared_pred=True, smooth_nr=0.0, smooth_dr=1e-6)
 optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=1e-5)
 scheduler = LinearWarmupCosineAnnealingLR(
     optimizer, warmup_epochs=1, max_epochs=max_epochs
@@ -370,7 +374,7 @@ for epoch in range(max_epochs):
         post_trans = Compose(
             [
                 Activations(sigmoid=True),
-                AsDiscrete(threshold=0.6),
+                AsDiscrete(threshold=0.5),
             ]
         )
         metric_sum = metric_sum_tc = metric_sum_wt = metric_sum_et = 0.0
