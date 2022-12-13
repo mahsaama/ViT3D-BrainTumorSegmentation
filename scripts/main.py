@@ -308,8 +308,8 @@ print("Total parameters count", pytorch_total_params)
 #     if "swinViT" in name and "layers" in name:
 #         param.requires_grad = False
 
-# loss_function = DiceCELoss(to_onehot_y=False, sigmoid=True, ce_weight=class_weights)
-loss_function = DiceLoss(to_onehot_y=False, sigmoid=True)
+loss_function = DiceCELoss(to_onehot_y=False, sigmoid=True, ce_weight=class_weights)
+# loss_function = DiceLoss(to_onehot_y=False, sigmoid=True)
 # loss_function = DiceLoss(to_onehot_y=False, sigmoid=True, squared_pred=True, smooth_nr=0.0, smooth_dr=1e-6)
 
 optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=1e-5)
