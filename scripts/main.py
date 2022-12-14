@@ -353,8 +353,8 @@ for epoch in range(max_epochs):
         try:
             outputs = model(inputs)
         except Exception as e:
-            print(step)
-            print(e)
+            # print(step)
+            # print(e)
             continue
         # print(outputs.size(), labels.size())
 
