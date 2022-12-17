@@ -184,9 +184,9 @@ def lovasz_softmax_flat(probas, labels, classes='present'):
 
     for c in class_to_sum:
         fg = (labels == c).float() # foreground for class c
-        print(fg.size())
-        print(torch.unique(fg))
-        print(torch.unique(labels))
+        # print(fg.size())
+        # print(torch.unique(fg))
+        # print(torch.unique(labels))
 
         if (classes == 'present' and fg.sum() == 0):
             continue
@@ -217,8 +217,9 @@ def flatten_probas(probas, labels, ignore=None):
     # probas = probas.permute(0, 2, 3, 1).contiguous().view(-1, C)  # B * H * W, C = P, C
     probas = probas.permute(0, 2, 3, 4, 1).contiguous().view(-1, C)  # B * H * W, C = P, C
 
-    labels = labels.view(-1)
     print("1:", torch.unique(labels))
+    labels = labels.view(-1)
+    print("2:", torch.unique(labels))
     if ignore is None:
         return probas, labels
     valid = (labels != ignore)
