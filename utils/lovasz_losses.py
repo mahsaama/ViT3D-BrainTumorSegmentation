@@ -26,9 +26,7 @@ def lovasz_grad(gt_sorted):
     union = gts + (1 - gt_sorted).float().cumsum(0)
     jaccard = 1. - intersection / union
     if p > 1: # cover 1-pixel case
-        print(jaccard)
         jaccard[1:p] = jaccard[1:p] - jaccard[0:-1]
-        print("________________________7__________")
     return jaccard
 
 
@@ -199,8 +197,7 @@ def lovasz_softmax_flat(probas, labels, classes='present'):
         # perm = perm.data
         # fg_sorted = fg[perm]
         fg_sorted = torch.index_select(fg, 0, perm)
-        x = lovasz_grad(fg_sorted)
-        losses.append(torch.dot(errors_sorted, Variable(x)))
+        losses.append(torch.dot(errors_sorted, Variable(lovasz_grad(fg_sorted))))
     return mean(losses)
 
 
