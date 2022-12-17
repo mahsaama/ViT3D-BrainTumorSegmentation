@@ -311,9 +311,9 @@ print("Total parameters count", pytorch_total_params)
 #         param.requires_grad = False
 
 # loss_function = DiceCELoss(to_onehot_y=False, sigmoid=True, ce_weight=class_weights)
-# loss_function = DiceLoss(to_onehot_y=False, sigmoid=True)
+loss_function = DiceLoss(to_onehot_y=False, sigmoid=True)
 # loss_function = DiceLoss(to_onehot_y=False, sigmoid=True, squared_pred=True, smooth_nr=0.0, smooth_dr=1e-6)
-loss_function = lovasz_softmax
+# loss_function = lovasz_softmax
 
 optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=1e-5)
 # optimizer = torch.optim.SGD(model.parameters(), lr=lr, momentum=0.99, nesterov=True, weight_decay=1e-5)
@@ -361,10 +361,8 @@ for epoch in range(max_epochs):
 
         # print("\n0:", torch.unique(labels.argmax(1)))
         # print("\n0:", labels.size(), torch.unique(labels), labels.argmax(1).size(), torch.unique(labels.argmax(1)))
-        # loss = loss_function(outputs, labels)
-        print("____________")
-        loss = loss_function(outputs, labels.argmax(1))
-        print("+++++++++++++++++++++")
+        loss = loss_function(outputs, labels)
+        # loss = loss_function(outputs, labels.argmax(1))
         train_tqdm.set_postfix({'loss': loss.item()})
         loss.backward()
         optimizer.step()
