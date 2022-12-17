@@ -164,7 +164,6 @@ def lovasz_softmax(probas, labels, classes='present', per_image=False, ignore=No
         loss = mean(lovasz_softmax_flat(*flatten_probas(prob.unsqueeze(0), lab.unsqueeze(0), ignore), classes=classes)
                           for prob, lab in zip(probas, labels))
     else:
-        print("1:", torch.unique(labels))
         loss = lovasz_softmax_flat(*flatten_probas(probas, labels, ignore), classes=classes)
     return loss
 
@@ -185,10 +184,6 @@ def lovasz_softmax_flat(probas, labels, classes='present'):
 
     for c in class_to_sum:
         fg = (labels == c).float() # foreground for class c
-        # print(fg.size())
-        # print(torch.unique(fg))
-        # print(torch.unique(labels))
-
         if (classes == 'present' and fg.sum() == 0):
             continue
         if C == 1:
@@ -199,7 +194,9 @@ def lovasz_softmax_flat(probas, labels, classes='present'):
             class_pred = probas[:, c]
         errors = (Variable(fg) - class_pred).abs()
         errors_sorted, perm = torch.sort(errors, 0, descending=True)
+        print(perm)
         perm = perm.data
+        print(perm)
         fg_sorted = fg[perm]
         losses.append(torch.dot(errors_sorted, Variable(lovasz_grad(fg_sorted))))
     return mean(losses)
