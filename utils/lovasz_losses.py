@@ -27,8 +27,9 @@ def lovasz_grad(gt_sorted):
     jaccard = 1. - intersection / union
     print(p)
     if p > 1: # cover 1-pixel case
-        print(jaccard.size())
-        # print(jaccard[1:p] - jaccard[0:-1])
+        print(jaccard[1:p].size())
+        print("||||||||||||||||||||||||||||||||||")
+        print(jaccard[0:-1].size())
         jaccard[1:p] = jaccard[1:p] - jaccard[0:-1]
         print("________________________7__________")
     return jaccard
