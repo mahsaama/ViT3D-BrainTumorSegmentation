@@ -359,8 +359,9 @@ for epoch in range(max_epochs):
             # print(e)
             continue
         print(outputs.size(), labels.size())
-
-        loss = loss_function(outputs, labels)
+        print(outputs.argmax(1).size(), labels.argmax(1).size())
+        
+        loss = loss_function(outputs.argmax(1), labels.argmax(1))
         train_tqdm.set_postfix({'loss': loss.item()})
         loss.backward()
         optimizer.step()
