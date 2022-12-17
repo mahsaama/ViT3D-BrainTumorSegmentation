@@ -218,6 +218,7 @@ def flatten_probas(probas, labels, ignore=None):
     probas = probas.permute(0, 2, 3, 4, 1).contiguous().view(-1, C)  # B * H * W, C = P, C
 
     labels = labels.view(-1)
+    print("1:", torch.unique(labels))
     if ignore is None:
         return probas, labels
     valid = (labels != ignore)
