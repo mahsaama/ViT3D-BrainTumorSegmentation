@@ -360,7 +360,7 @@ for epoch in range(max_epochs):
             continue
         # print(outputs.size(), labels.size())
         # print(outputs.argmax(1).size(), labels.argmax(1).size())
-
+        print(torch.unique(labels.argmax(1)))
         loss = loss_function(outputs, labels.argmax(1))
         train_tqdm.set_postfix({'loss': loss.item()})
         loss.backward()
