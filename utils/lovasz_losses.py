@@ -186,6 +186,8 @@ def lovasz_softmax_flat(probas, labels, classes='present'):
         fg = (labels == c).float() # foreground for class c
         print(fg.size())
         print(torch.unique(fg))
+        print(torch.unique(labels))
+
         if (classes == 'present' and fg.sum() == 0):
             continue
         if C == 1:
