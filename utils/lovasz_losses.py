@@ -164,7 +164,7 @@ def lovasz_softmax(probas, labels, classes='present', per_image=False, ignore=No
         loss = mean(lovasz_softmax_flat(*flatten_probas(prob.unsqueeze(0), lab.unsqueeze(0), ignore), classes=classes)
                           for prob, lab in zip(probas, labels))
     else:
-        print("0:", torch.unique(labels))
+        print("1:", torch.unique(labels))
         loss = lovasz_softmax_flat(*flatten_probas(probas, labels, ignore), classes=classes)
     return loss
 
@@ -218,9 +218,7 @@ def flatten_probas(probas, labels, ignore=None):
     # probas = probas.permute(0, 2, 3, 1).contiguous().view(-1, C)  # B * H * W, C = P, C
     probas = probas.permute(0, 2, 3, 4, 1).contiguous().view(-1, C)  # B * H * W, C = P, C
 
-    print("1:", torch.unique(labels))
     labels = labels.view(-1)
-    print("2:", torch.unique(labels))
     if ignore is None:
         return probas, labels
     valid = (labels != ignore)
