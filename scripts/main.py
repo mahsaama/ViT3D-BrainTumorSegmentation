@@ -358,7 +358,7 @@ for epoch in range(max_epochs):
             # print(step)
             # print(e)
             continue
-        print(outputs.size(), labels.size())
+        # print(outputs.size(), labels.size())
         # print(outputs.argmax(1).size(), labels.argmax(1).size())
 
         loss = loss_function(outputs, labels.argmax(1))
