@@ -184,7 +184,6 @@ def lovasz_softmax_flat(probas, labels, classes='present'):
 
     for c in class_to_sum:
         fg = (labels == c).float() # foreground for class c
-        print(fg.size())
         if (classes == 'present' and fg.sum() == 0):
             continue
         if C == 1:
@@ -197,10 +196,9 @@ def lovasz_softmax_flat(probas, labels, classes='present'):
         errors_sorted, perm = torch.sort(errors, 0, descending=True)
         # perm = perm.data
         # fg_sorted = fg[perm]
-        print(perm.size())
         fg_sorted = torch.index_select(fg, 0, perm)
-        print(fg_sorted.size())
         losses.append(torch.dot(errors_sorted, Variable(lovasz_grad(fg_sorted))))
+        print(losses)
     return mean(losses)
 
 
