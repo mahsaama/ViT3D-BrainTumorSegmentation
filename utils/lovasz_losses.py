@@ -20,21 +20,15 @@ def lovasz_grad(gt_sorted):
     Computes gradient of the Lovasz extension w.r.t sorted errors
     See Alg. 1 in paper
     """
-    print("_____________________1_______________________")
     p = len(gt_sorted)
-    print("_____________________2_______________________")
     gts = gt_sorted.sum()
-    print("____________________3________________________")
     intersection = gts - gt_sorted.float().cumsum(0)
-    print("____________________4________________________")
     union = gts + (1 - gt_sorted).float().cumsum(0)
-    print("____________________5________________________")
     jaccard = 1. - intersection / union
-    print("____________________6________________________")
+    print("____________________", jaccard)
     if p > 1: # cover 1-pixel case
         jaccard[1:p] = jaccard[1:p] - jaccard[0:-1]
         print("________________________7____________________")
-    print("____________________________8________________")
     return jaccard
 
 
