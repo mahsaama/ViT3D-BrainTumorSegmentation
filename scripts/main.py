@@ -350,7 +350,7 @@ for epoch in range(max_epochs):
         #     y=labels,
         #     alpha=1)
 
-        # print(torch.unique(labels))
+        print(torch.unique(labels))
         optimizer.zero_grad()
         try:
             outputs = model(inputs)
