@@ -341,8 +341,8 @@ for epoch in range(max_epochs):
             batch_data["label"].to(device),
         )
         # print(step)
-        print(inputs.size())
-        print(labels.size())
+        # print(inputs.size())
+        # print(labels.size())
 
         # inputs, labels = augment_rare_classes(inputs, labels)
         # xs_mixup, ys_mixup_a, ys_mixup_b, lam = mixup_data(
@@ -358,7 +358,7 @@ for epoch in range(max_epochs):
             # print(step)
             # print(e)
             continue
-        # print(outputs.size(), labels.size())
+        print(outputs.size(), labels.size())
 
         loss = loss_function(outputs, labels)
         train_tqdm.set_postfix({'loss': loss.item()})
