@@ -194,9 +194,11 @@ def lovasz_softmax_flat(probas, labels, classes='present'):
             class_pred = probas[:, c]
         errors = (Variable(fg) - class_pred).abs()
         errors_sorted, perm = torch.sort(errors, 0, descending=True)
+        print(fg, fg.size())
+        print(perm, perm.size())
         # perm = perm.data
-        # fg_sorted = fg[perm]
-        fg_sorted = torch.index_select(fg, 0, perm)
+        fg_sorted = fg[perm]
+        # fg_sorted = torch.index_select(fg, 0, perm)
         losses.append(torch.dot(errors_sorted, Variable(lovasz_grad(fg_sorted))))
     return mean(losses)
 
@@ -212,7 +214,7 @@ def flatten_probas(probas, labels, ignore=None):
     # B, C, H, W = probas.size()
     B, C, H, W, D = probas.size()
     # probas = probas.permute(0, 2, 3, 1).contiguous().view(-1, C)  # B * H * W, C = P, C
-    probas = probas.permute(0, 2, 3, 4, 1).contiguous().view(-1, C)  # B * H * W, C = P, C
+    probas = probas.permute(0, 2, 3, 4, 1).contiguous().view(-1, C)  # B * H * W * D, C = P, C
 
     labels = labels.view(-1)
     if ignore is None:
