@@ -9,7 +9,6 @@ import torch
 from torch.autograd import Variable
 import torch.nn.functional as F
 import numpy as np
-import copy
 try:
     from itertools import  ifilterfalse
 except ImportError: # py3k
@@ -184,8 +183,7 @@ def lovasz_softmax_flat(probas, labels, classes='present'):
     class_to_sum = list(range(C)) if classes in ['all', 'present'] else classes
 
     for c in class_to_sum:
-        labelss = copy.deepcopy(labels)
-        fg = (labelss == c).float() # foreground for class c
+        fg = (labels == c).float() # foreground for class c
         if (classes == 'present' and fg.sum() == 0):
             continue
         if C == 1:
@@ -196,9 +194,7 @@ def lovasz_softmax_flat(probas, labels, classes='present'):
             class_pred = probas[:, c]
         errors = (Variable(fg) - class_pred).abs()
         errors_sorted, perm = torch.sort(errors, 0, descending=True)
-        print(fg, fg.size(), fg.dtype)
-        print(perm, perm.size(), perm.dtype)
-        perm = perm.data
+        perm = perm.data.int()
         fg_sorted = fg[perm]
         # fg_sorted = torch.index_select(fg, 0, perm)
         losses.append(torch.dot(errors_sorted, Variable(lovasz_grad(fg_sorted))))
