@@ -194,7 +194,7 @@ def lovasz_softmax_flat(probas, labels, classes='present'):
             class_pred = probas[:, c]
         errors = (Variable(fg) - class_pred).abs()
         errors_sorted, perm = torch.sort(errors, 0, descending=True)
-        perm = perm.data.int()
+        perm = perm.data.long()
         fg_sorted = fg[perm]
         # fg_sorted = torch.index_select(fg, 0, perm)
         losses.append(torch.dot(errors_sorted, Variable(lovasz_grad(fg_sorted))))
