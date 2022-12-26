@@ -358,11 +358,24 @@ for epoch in range(max_epochs):
             # print(step)
             # print(e)
             continue
+        print("start")
+        ln = torch.zeros(128, 128, 64)
+        for i in range(128):
+            for j in range(128):
+                for k in range(64):
+                    c0 = 1 if labels[0, 0, i, j, k] == 1 else 0
+                    c1 = 1 if labels[0, 1, i, j, k] == 1 else 0
+                    c2 = 1 if labels[0, 2, i, j, k] == 1 else 0
+                    if c0 == 1:
+                        ln[i, j, k] = 0
+                    if c1 == 1:
+                        ln[i, j, k] = 1
+                    if c2 == 1:
+                        ln[i, j, k] = 2
+        print(torch.unique(ln, return_counts=True))
+        print("end")
 
-        # print("\n0:", torch.unique(labels.argmax(1)))
-        # print("\n0:", labels.size(), torch.unique(labels), labels.argmax(1).size(), torch.unique(labels.argmax(1)))
-        # loss = loss_function(outputs, labels)
-        loss = loss_function(outputs, labels.argmax(1))
+        loss = loss_function(outputs, ln)
         train_tqdm.set_postfix({'loss': loss.item()})
         loss.backward()
         optimizer.step()
