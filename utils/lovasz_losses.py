@@ -25,6 +25,7 @@ def lovasz_grad(gt_sorted):
     intersection = gts - gt_sorted.float().cumsum(0)
     union = gts + (1 - gt_sorted).float().cumsum(0)
     jaccard = 1. - intersection / union
+    jaccard = torch.tensor(jaccard)
     if p > 1: # cover 1-pixel case
         jaccard[1:p] = jaccard[1:p] - jaccard[0:-1]
     return jaccard
@@ -172,7 +173,7 @@ def lovasz_softmax_flat(probas, labels, classes='present'):
     """
     Multi-class Lovasz-Softmax loss
       probas: [P, C] Variable, class probabilities at each prediction (between 0 and 1)
-      labels: [P] Tensor, ground truth labels (between 0 and C - 1)
+      labels: [P, C] Tensor, ground truth labels (between 0 and C - 1)
       classes: 'all' for all, 'present' for classes present in labels, or a list of classes to average.
     """
     if probas.numel() == 0:
@@ -183,7 +184,9 @@ def lovasz_softmax_flat(probas, labels, classes='present'):
     class_to_sum = list(range(C)) if classes in ['all', 'present'] else classes
 
     for c in class_to_sum:
-        fg = (labels == c).float() # foreground for class c
+        # fg = (labels == c).float() # foreground for class c
+        fg = labels[:, c]
+
         if (classes == 'present' and fg.sum() == 0):
             continue
         if C == 1:
@@ -194,9 +197,9 @@ def lovasz_softmax_flat(probas, labels, classes='present'):
             class_pred = probas[:, c]
         errors = (Variable(fg) - class_pred).abs()
         errors_sorted, perm = torch.sort(errors, 0, descending=True)
-        perm = perm.data
-        fg_sorted = fg[perm]
-        # fg_sorted = torch.index_select(fg, 0, perm)
+        # perm = perm.data
+        # fg_sorted = fg[perm]
+        fg_sorted = torch.index_select(fg, 0, perm)
         losses.append(torch.dot(errors_sorted, Variable(lovasz_grad(fg_sorted))))
     return mean(losses)
 
@@ -213,8 +216,8 @@ def flatten_probas(probas, labels, ignore=None):
     B, C, H, W, D = probas.size()
     # probas = probas.permute(0, 2, 3, 1).contiguous().view(-1, C)  # B * H * W, C = P, C
     probas = probas.permute(0, 2, 3, 4, 1).contiguous().view(-1, C)  # B * H * W * D, C = P, C
+    labels = labels.permute(0, 2, 3, 4, 1).contiguous().view(-1, C)
 
-    labels = labels.view(-1)
     if ignore is None:
         return probas, labels
     valid = (labels != ignore)
