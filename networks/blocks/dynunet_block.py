@@ -60,7 +60,7 @@ class UnetResBlock(nn.Module):
             act=None,
             norm=None,
             conv_only=False,
-            deformable=True,
+            # deformable=True,
         )
         self.conv2 = get_conv_layer(
             spatial_dims,
@@ -72,7 +72,7 @@ class UnetResBlock(nn.Module):
             act=None,
             norm=None,
             conv_only=False,
-            deformable=True,
+            # deformable=True,
         )
         self.lrelu = get_act_layer(name=act_name)
         self.norm1 = get_norm_layer(name=norm_name, spatial_dims=spatial_dims, channels=out_channels)
