@@ -145,7 +145,7 @@ data_dicts = [
     for t1, t2, t1ce, f, label_name in zip(
         t1_list, t2_list, t1ce_list, flair_list, seg_list
     ) 
-    if "195" not in t1 if "168" not in t1
+    # if "195" not in t1 if "168" not in t1
 ]
 
 # # # Get weights for classes
@@ -312,16 +312,16 @@ print("Total parameters count", pytorch_total_params)
 #         param.requires_grad = False
 
 # loss_function = DiceCELoss(to_onehot_y=False, sigmoid=True, ce_weight=class_weights)
-# loss_function = DiceLoss(to_onehot_y=False, sigmoid=True)
+loss_function = DiceLoss(to_onehot_y=False, sigmoid=True)
 # loss_function = DiceLoss(to_onehot_y=False, sigmoid=True, squared_pred=True, smooth_nr=0.0, smooth_dr=1e-6)
 # loss_function = lovasz_softmax
-loss_function = FocalLoss(gamma=0)
+# loss_function = FocalLoss(gamma=0)
 
 optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=1e-5)
 # optimizer = torch.optim.SGD(model.parameters(), lr=lr, momentum=0.99, nesterov=True, weight_decay=1e-5)
 
 scheduler = LinearWarmupCosineAnnealingLR(
-    optimizer, warmup_epochs=1, max_epochs=max_epochs
+    optimizer, warmup_epochs=5, max_epochs=max_epochs
 )
 torch.cuda.empty_cache()
 
@@ -381,7 +381,7 @@ for epoch in range(max_epochs):
         post_trans = Compose(
             [
                 Activations(sigmoid=True),
-                AsDiscrete(threshold=0.6),
+                AsDiscrete(threshold=0.7),
             ]
         )
         metric_sum = metric_sum_tc = metric_sum_wt = metric_sum_et = 0.0
