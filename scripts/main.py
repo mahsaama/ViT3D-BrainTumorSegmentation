@@ -381,7 +381,7 @@ for epoch in range(max_epochs):
         post_trans = Compose(
             [
                 Activations(sigmoid=True),
-                AsDiscrete(threshold=0.5),
+                AsDiscrete(threshold=0.7),
             ]
         )
         metric_sum = metric_sum_tc = metric_sum_wt = metric_sum_et = 0.0
