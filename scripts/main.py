@@ -311,8 +311,8 @@ print("Total parameters count", pytorch_total_params)
 #     if "swinViT" in name and "layers" in name:
 #         param.requires_grad = False
 
-# loss_function = DiceCELoss(to_onehot_y=False, sigmoid=True, ce_weight=class_weights)
-loss_function = DiceLoss(to_onehot_y=False, sigmoid=True)
+loss_function = DiceCELoss(to_onehot_y=False, sigmoid=True, ce_weight=class_weights)
+# loss_function = DiceLoss(to_onehot_y=False, sigmoid=True)
 # loss_function = DiceLoss(to_onehot_y=False, sigmoid=True, squared_pred=True, smooth_nr=0.0, smooth_dr=1e-6)
 # loss_function = lovasz_softmax
 # loss_function = FocalLoss(gamma=0)
@@ -381,7 +381,7 @@ for epoch in range(max_epochs):
         post_trans = Compose(
             [
                 Activations(sigmoid=True),
-                AsDiscrete(threshold=0.7),
+                AsDiscrete(threshold=0.6),
             ]
         )
         metric_sum = metric_sum_tc = metric_sum_wt = metric_sum_et = 0.0
