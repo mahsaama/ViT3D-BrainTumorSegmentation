@@ -321,7 +321,7 @@ optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=1e-5)
 # optimizer = torch.optim.SGD(model.parameters(), lr=lr, momentum=0.99, nesterov=True, weight_decay=1e-5)
 
 scheduler = LinearWarmupCosineAnnealingLR(
-    optimizer, warmup_epochs=1, max_epochs=max_epochs
+    optimizer, warmup_epochs=5, max_epochs=max_epochs
 )
 torch.cuda.empty_cache()
 
